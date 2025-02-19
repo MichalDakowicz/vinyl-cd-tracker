@@ -194,16 +194,16 @@ function renderItems(itemsToRender) {
             </div>
             <div class="actions">
                 ${linkButton}
-                <button class="editButton" data-index="${index}">
+                <button class="editButton" data-id="${item.id}">
                     <img src="${getIconPath("edit")}" alt="Edit">
                 </button>
-                <button class="removeButton" data-index="${index}">
+                <button class="removeButton" data-id="${item.id}">
                     <img src="${getIconPath("delete")}" alt="Remove">
                 </button>
             </div>
         `;
         newItemElement.setAttribute("data-index", index);
-        newItemElement.setAttribute("data-id", item.id); 
+        newItemElement.setAttribute("data-id", item.id);
         results.appendChild(newItemElement);
     });
 
@@ -359,8 +359,11 @@ document.querySelector("#results").addEventListener("click", (event) => {
     if (!target) return;
 
     if (target.classList.contains("editButton")) {
-        const index = target.dataset.index;
-        const item = items[index];
+        const itemId = target.dataset.id;
+        const itemIndex = items.findIndex((item) => item.id === Number(itemId));
+        if (itemIndex === -1) return;
+
+        const item = items[itemIndex];
         document.querySelector("#imageUrl").value = item.imageUrl;
         document.querySelector("#albumName").value = item.albumName;
         document.querySelector("#albumArtists").value = item.albumArtists;
@@ -375,11 +378,14 @@ document.querySelector("#results").addEventListener("click", (event) => {
         updateFormPreview();
 
         isEditing = true;
-        editingIndex = index;
+        editingIndex = itemIndex;
     } else if (target.classList.contains("removeButton")) {
-        const index = target.dataset.index;
-        items.splice(index, 1);
-        refreshItems();
+        const itemId = target.dataset.id;
+        const itemIndex = items.findIndex((item) => item.id === Number(itemId));
+        if (itemIndex !== -1) {
+            items.splice(itemIndex, 1);
+            refreshItems();
+        }
     }
 });
 
