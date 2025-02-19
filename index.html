@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vinyl/CD Tracker</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Vinyl/CD Tracker</h1>
+                <div class="header-buttons">
+                    <button id="viewModeButton" title="Toggle View">
+                        <img src="img/grid.svg" alt="Toggle View" />
+                    </button>
+                    <button id="exportButton" title="Export Data">
+                        <img src="img/export.svg" alt="Export" />
+                    </button>
+                    <button id="importButton" title="Import Data">
+                        <img src="img/import.svg" alt="Import" />
+                    </button>
+                </div>
+            </div>
+            <div class="search">
+                <input type="text" id="search" placeholder="Search..." />
+                <button id="randomButton" title="Random Album">
+                    <img src="img/random.svg" alt="Random" />
+                </button>
+                <button id="clearButton" title="Clear Search">
+                    <img src="img/clear.svg" alt="Clear" />
+                </button>
+            </div>
+            <div id="results"></div>
+            <button id="addItemButton">
+                <img src="img/add.svg" alt="Add Item" />
+            </button>
+        </div>
+
+        <div id="darkMode">
+            <input type="checkbox" id="dark-mode-toggle" />
+            <b>Dark Mode</b>
+        </div>
+
+        <div id="addItemModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <form id="addItemForm">
+                    <label for="imageUrl">Image URL:</label>
+                    <input type="text" id="imageUrl" name="imageUrl" required />
+                    <label for="albumName">Album Name:</label>
+                    <input
+                        type="text"
+                        id="albumName"
+                        name="albumName"
+                        required
+                    />
+                    <label for="albumArtists">Album Artists:</label>
+                    <input
+                        type="text"
+                        id="albumArtists"
+                        name="albumArtists"
+                        required
+                    />
+                    <label for="releaseDate">Release Date:</label>
+                    <input
+                        type="date"
+                        id="releaseDate"
+                        name="releaseDate"
+                        required
+                    />
+                    <label for="albumLink">Album Link (optional):</label>
+                    <input
+                        type="url"
+                        id="albumLink"
+                        name="albumLink"
+                        placeholder="Spotify, Tidal, etc. URL"
+                    />
+                    <div class="form-row type-checkboxes">
+                        <label>Type:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    id="vinylCheck"
+                                    name="type"
+                                    value="vinyl"
+                                />
+                                Vinyl
+                            </label>
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    id="cdCheck"
+                                    name="type"
+                                    value="cd"
+                                />
+                                CD
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="wantedToggle">Wanted:</label>
+                        <label class="switch">
+                            <input type="checkbox" id="wantedToggle" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button type="submit">
+                        <img src="img/add.svg" alt="Add" />
+                    </button>
+                </form>
+                <div id="formPreviewCard" class="card"></div>
+            </div>
+        </div>
+
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <span id="closePreview" class="close">&times;</span>
+                <div id="previewCard"></div>
+            </div>
+        </div>
+    </body>
+    <script src="script.js"></script>
+</html>
