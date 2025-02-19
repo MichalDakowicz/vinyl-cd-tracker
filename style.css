@@ -317,10 +317,11 @@ body.dark-mode #previewModal .modal-content {
     background: none;
     border: none;
     cursor: pointer;
-    margin-left: 5px;
+    padding: 10px;
 }
 .card .actions button img {
     width: 28px;
+    margin: 0px;
 }
 .card .actions button:hover img {
     filter: brightness(0.8);
@@ -726,10 +727,11 @@ body.dark-mode .checkbox-label input[type="checkbox"]:checked {
 }
 
 .card.highlight {
-    animation: highlight 2s ease-in-out;
+    animation: highlight 4s ease-in-out;
     border: 2px solid var(--button-bg-color);
     position: relative;
     z-index: 2;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
 }
 
 @keyframes highlight {
@@ -738,20 +740,26 @@ body.dark-mode .checkbox-label input[type="checkbox"]:checked {
         transform: scale(1);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         background-color: var(--background-color);
+        border-color: var(--button-bg-color);
     }
-    50% {
+    15%,
+    85% {
         transform: scale(1.03);
         box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
         background-color: rgba(76, 175, 80, 0.1);
+        border-color: var(--button-bg-color);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 12px 28px rgba(76, 175, 80, 0.4);
+        background-color: rgba(76, 175, 80, 0.15);
+        border-color: var(--button-bg-color);
     }
 }
 
 body.dark-mode .card.highlight {
-    border-color: var(--button-bg-color);
-}
-
-body.dark-mode .card.highlight {
-    animation: highlightDark 2s ease-in-out;
+    animation: highlightDark 4s ease-in-out;
+    box-shadow: 0 0 15px rgba(85, 85, 85, 0.5);
 }
 
 @keyframes highlightDark {
@@ -761,10 +769,16 @@ body.dark-mode .card.highlight {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         background-color: var(--background-color);
     }
-    50% {
+    15%,
+    85% {
         transform: scale(1.03);
         box-shadow: 0 8px 20px rgba(85, 85, 85, 0.5);
         background-color: rgba(85, 85, 85, 0.3);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 12px 28px rgba(85, 85, 85, 0.6);
+        background-color: rgba(85, 85, 85, 0.4);
     }
 }
 
@@ -774,4 +788,46 @@ body.dark-mode .card.highlight {
     height: 80px;
     margin: 10px 0;
     background-color: rgba(0, 0, 0, 0.05);
+}
+
+@media screen and (max-width: 600px) {
+    #results.list-view .card .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    #results.list-view .card .actions button img {
+        width: 18px;
+        height: 18px;
+    }
+    #results.list-view .card .actions button {
+        padding: 6px;
+    }
+}
+
+.date-input-container {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.date-input-container input {
+    width: 50px;
+    text-align: center;
+    padding: 8px;
+    font-family: "Nunito Sans", sans-serif;
+}
+
+.date-input-container input.year {
+    width: 70px;
+}
+
+.date-input-container span {
+    color: var(--text-color);
+    font-size: 1.2rem;
+}
+
+.date-input-container input:disabled {
+    background-color: rgba(0, 0, 0, 0.1);
+    cursor: not-allowed;
 }

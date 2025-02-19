@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Vinyl/CD Tracker</title>
+        <link rel="shortcut icon" href="icon.png" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
@@ -63,12 +64,30 @@
                         required
                     />
                     <label for="releaseDate">Release Date:</label>
-                    <input
-                        type="date"
-                        id="releaseDate"
-                        name="releaseDate"
-                        required
-                    />
+                    <div class="date-input-container">
+                        <input
+                            type="text"
+                            id="releaseDay"
+                            placeholder="DD"
+                            maxlength="2"
+                        />
+                        <span>-</span>
+                        <input
+                            type="text"
+                            id="releaseMonth"
+                            placeholder="MM"
+                            maxlength="2"
+                        />
+                        <span>-</span>
+                        <input
+                            type="text"
+                            id="releaseYear"
+                            placeholder="YYYY"
+                            maxlength="4"
+                            class="year"
+                            required
+                        />
+                    </div>
                     <label for="albumLink">Album Link (optional):</label>
                     <input
                         type="url"

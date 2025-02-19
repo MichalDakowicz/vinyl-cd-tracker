@@ -136,7 +136,23 @@ function loadItemsFromLocalStorage() {
 const items = loadItemsFromLocalStorage();
 
 function formatDate(dateString) {
+    if (!dateString) return "";
+
+    const parts = dateString.split("-");
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+
+    if (
+        year &&
+        (!month || month === "00" || month === "01") &&
+        (!day || day === "00" || day === "01")
+    ) {
+        return year;
+    }
+
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString("en-GB");
 }
 
@@ -144,14 +160,9 @@ function renderItems(itemsToRender) {
     const results = document.querySelector("#results");
     results.innerHTML = "";
 
-    const sortedItems = [...itemsToRender];
-
-    sortedItems.sort((a, b) => {
-        if (a.wanted === b.wanted) {
-            return 0;
-        }
-        return a.wanted ? 1 : -1;
-    });
+    const ownedItems = itemsToRender.filter((item) => !item.wanted);
+    const wantedItems = itemsToRender.filter((item) => item.wanted);
+    const sortedItems = [...ownedItems, ...wantedItems];
 
     sortedItems.forEach((item, index) => {
         const typesBadges = Object.entries(item.types || {})
@@ -313,12 +324,21 @@ document
         }
     });
 
+let currentEditingId = null;
+
 function addItemFormSubmitHandler(event) {
     event.preventDefault();
     const imageUrl = document.querySelector("#imageUrl").value;
     const albumName = document.querySelector("#albumName").value;
     const albumArtists = document.querySelector("#albumArtists").value;
-    const releaseDate = document.querySelector("#releaseDate").value;
+    const yearInput = document.querySelector("#releaseYear");
+    const monthInput = document.querySelector("#releaseMonth");
+    const dayInput = document.querySelector("#releaseDay");
+
+    const year = yearInput.value.padStart(4, "0");
+    const month = monthInput.value.padStart(2, "0") || "01";
+    const day = dayInput.value.padStart(2, "0") || "01";
+    const releaseDate = `${year}-${month}-${day}`;
     const wanted = document.querySelector("#wantedToggle").checked;
     const albumLink = document.querySelector("#albumLink").value;
     const types = {
@@ -326,8 +346,7 @@ function addItemFormSubmitHandler(event) {
         cd: document.querySelector("#cdCheck").checked,
     };
 
-    const newItem = {
-        id: Date.now(),
+    const itemData = {
         imageUrl,
         albumName,
         albumArtists,
@@ -337,10 +356,16 @@ function addItemFormSubmitHandler(event) {
         albumLink: albumLink || null,
     };
 
-    if (isEditing && editingIndex !== null) {
-        items[editingIndex] = { ...newItem, id: items[editingIndex].id };
+    if (isEditing && currentEditingId) {
+        const index = items.findIndex((item) => item.id === currentEditingId);
+        if (index !== -1) {
+            items[index] = { ...items[index], ...itemData };
+        }
     } else {
-        items.push(newItem);
+        items.push({
+            id: Date.now(),
+            ...itemData,
+        });
     }
 
     refreshItems();
@@ -349,7 +374,7 @@ function addItemFormSubmitHandler(event) {
     formPreviewCard.innerHTML = "";
 
     isEditing = false;
-    editingIndex = null;
+    currentEditingId = null;
 }
 
 addItemForm.addEventListener("submit", addItemFormSubmitHandler);
@@ -359,26 +384,32 @@ document.querySelector("#results").addEventListener("click", (event) => {
     if (!target) return;
 
     if (target.classList.contains("editButton")) {
-        const itemId = target.dataset.id;
-        const itemIndex = items.findIndex((item) => item.id === Number(itemId));
-        if (itemIndex === -1) return;
-
-        const item = items[itemIndex];
-        document.querySelector("#imageUrl").value = item.imageUrl;
-        document.querySelector("#albumName").value = item.albumName;
-        document.querySelector("#albumArtists").value = item.albumArtists;
-        document.querySelector("#releaseDate").value = item.releaseDate;
-        document.querySelector("#wantedToggle").checked = item.wanted;
-        document.querySelector("#albumLink").value = item.albumLink || "";
-        document.querySelector("#vinylCheck").checked =
-            item.types?.vinyl || false;
-        document.querySelector("#cdCheck").checked = item.types?.cd || false;
-        modal.style.display = "block";
-
-        updateFormPreview();
+        const itemId = Number(target.dataset.id);
+        const item = items.find((item) => item.id === itemId);
+        if (!item) return;
 
         isEditing = true;
-        editingIndex = itemIndex;
+        currentEditingId = itemId;
+
+        document.querySelector("#imageUrl").value = item.imageUrl || "";
+        document.querySelector("#albumName").value = item.albumName || "";
+        document.querySelector("#albumArtists").value = item.albumArtists || "";
+        document.querySelector("#albumLink").value = item.albumLink || "";
+        document.querySelector("#wantedToggle").checked = Boolean(item.wanted);
+        document.querySelector("#vinylCheck").checked = Boolean(
+            item.types?.vinyl
+        );
+        document.querySelector("#cdCheck").checked = Boolean(item.types?.cd);
+
+        if (item.releaseDate) {
+            const [y, m, d] = item.releaseDate.split("-");
+            document.querySelector("#releaseYear").value = y || "";
+            document.querySelector("#releaseMonth").value = parseInt(m) || "";
+            document.querySelector("#releaseDay").value = parseInt(d) || "";
+        }
+
+        modal.style.display = "block";
+        updateFormPreview();
     } else if (target.classList.contains("removeButton")) {
         const itemId = target.dataset.id;
         const itemIndex = items.findIndex((item) => item.id === Number(itemId));
@@ -387,6 +418,14 @@ document.querySelector("#results").addEventListener("click", (event) => {
             refreshItems();
         }
     }
+});
+
+closeModalButton.addEventListener("click", () => {
+    modal.style.display = "none";
+    isEditing = false;
+    currentEditingId = null;
+    addItemForm.reset();
+    formPreviewCard.innerHTML = "";
 });
 
 const exportButton = document.querySelector("#exportButton");
@@ -492,8 +531,7 @@ function initDragAndDrop() {
                     );
                 }
 
-                clearTimeout(card.dataset.saveTimeout);
-                card.dataset.saveTimeout = setTimeout(saveNewOrder, 100);
+                saveNewOrder();
             });
         } catch (error) {
             console.error("Error setting up drag and drop for card:", error);
@@ -507,11 +545,9 @@ function saveNewOrder() {
     const cards = document.querySelectorAll(".card");
     const newOrder = [];
 
-    const itemMap = new Map(items.map((item) => [item.id, item]));
-
     cards.forEach((card) => {
-        const index = parseInt(card.dataset.index);
-        const item = items[index];
+        const itemId = card.dataset.id;
+        const item = items.find((item) => item.id === Number(itemId));
         if (item) {
             newOrder.push(item);
         }
@@ -526,18 +562,59 @@ function saveNewOrder() {
 const randomButton = document.querySelector("#randomButton");
 
 randomButton.addEventListener("click", () => {
-    if (items.length === 0) return;
-    const randomIndex = Math.floor(Math.random() * items.length);
-    const randomItem = items[randomIndex];
+    const displayedCards = document.querySelectorAll(".card:not(.wanted)");
+    if (displayedCards.length === 0) return;
 
-    searchInput.value = "";
-    renderItems(items);
+    const randomIndex = Math.floor(Math.random() * displayedCards.length);
+    const targetCard = displayedCards[randomIndex];
 
-    const cards = document.querySelectorAll(".card");
-    const targetCard = cards[randomIndex];
-    if (targetCard) {
-        targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    document
+        .querySelectorAll(".highlight")
+        .forEach((card) => card.classList.remove("highlight"));
+
+    targetCard.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+    });
+
+    setTimeout(() => {
         targetCard.classList.add("highlight");
-        setTimeout(() => targetCard.classList.remove("highlight"), 2000);
+        setTimeout(() => targetCard.classList.remove("highlight"), 4000);
+    }, 500);
+});
+
+function setupDateInputs() {
+    const dayInput = document.querySelector("#releaseDay");
+    const monthInput = document.querySelector("#releaseMonth");
+    const yearInput = document.querySelector("#releaseYear");
+
+    function handleDateInput(input, nextInput, max) {
+        input.addEventListener("input", (e) => {
+            e.target.value = e.target.value.replace(/\D/g, "");
+            const value = e.target.value;
+
+            if (value.length === input.maxLength && nextInput && value <= max) {
+                nextInput.focus();
+            }
+        });
+
+        input.addEventListener("keydown", (e) => {
+            if (
+                e.key === "Backspace" &&
+                e.target.value === "" &&
+                input !== yearInput
+            ) {
+                input.previousElementSibling.previousElementSibling.focus();
+            }
+        });
     }
+
+    handleDateInput(dayInput, monthInput, 31);
+    handleDateInput(monthInput, yearInput, 12);
+    handleDateInput(yearInput, null, 9999);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    setupDateInputs();
+    updateAddItemButtonIcon();
 });
