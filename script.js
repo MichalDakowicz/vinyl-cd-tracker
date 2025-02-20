@@ -49,6 +49,9 @@ function updateAddItemButtonIcon() {
 
     randomButtonIcon.src = getIconPath("random");
     clearButtonIcon.src = getIconPath("clear");
+
+    const filterButtonIcon = document.querySelector("#filtersButton img");
+    filterButtonIcon.src = getIconPath("filter");
 }
 
 darkModeToggle.addEventListener("change", (event) => {
@@ -196,7 +199,7 @@ function renderItems(itemsToRender) {
             : "";
 
         newItemElement.innerHTML = `
-            <img src="${imageUrl}" alt="Album Image" onerror="this.src='img/default-album.png'">
+            <img src="${imageUrl}" alt="Album Image" onerror="this.src='img/default.png'">
             <div class="album-info">
                 <h3>${albumName}</h3>
                 <p>${albumArtists}</p>
@@ -233,7 +236,7 @@ const clearButton = document.querySelector("#clearButton");
 
 function searchItems(query) {
     if (!query) {
-        renderItems(items);
+        renderItems(applyFilters(items));
         return;
     }
 
@@ -254,7 +257,7 @@ function searchItems(query) {
         );
     });
 
-    renderItems(filteredItems);
+    renderItems(applyFilters(filteredItems));
 }
 
 searchInput.addEventListener("input", () => {
@@ -285,11 +288,36 @@ let editingIndex = null;
 
 const formPreviewCard = document.querySelector("#formPreviewCard");
 
+async function updateImageFromSpotify() {
+    const imageUrl = document.querySelector("#imageUrl").value;
+    const albumLink = document.querySelector("#albumLink").value;
+
+    if (!imageUrl && albumLink && albumLink.includes("spotify.com")) {
+        const spotifyData = await getAlbumImageFromSpotify(albumLink);
+        if (spotifyData.imageUrl) {
+            document.querySelector("#imageUrl").value = spotifyData.imageUrl;
+            document.querySelector("#genres").value =
+                spotifyData.genres.join(", ");
+            updateFormPreview();
+            return spotifyData.imageUrl;
+        }
+    }
+    return imageUrl || "img/default.png";
+}
+
 function updateFormPreview() {
     const imageUrl = document.querySelector("#imageUrl").value;
     const albumName = document.querySelector("#albumName").value;
     const albumArtists = document.querySelector("#albumArtists").value;
-    const releaseDate = document.querySelector("#releaseDate").value;
+    const genres = document.querySelector("#genres").value;
+
+    const year = document.querySelector("#releaseYear").value.padStart(4, "0");
+    const month =
+        document.querySelector("#releaseMonth").value.padStart(2, "0") || "01";
+    const day =
+        document.querySelector("#releaseDay").value.padStart(2, "0") || "01";
+    const releaseDate = `${year}-${month}-${day}`;
+
     const types = {
         vinyl: document.querySelector("#vinylCheck").checked,
         cd: document.querySelector("#cdCheck").checked,
@@ -303,11 +331,14 @@ function updateFormPreview() {
         .join("");
 
     formPreviewCard.innerHTML = `
-        <img src="${imageUrl}" alt="Album Image">
+        <img src="${
+            imageUrl || "img/default.png"
+        }" alt="Album Image" onerror="this.src='img/default.png'">
         <div class="album-info">
             <h3>${albumName}</h3>
             <p>${albumArtists}</p>
             <p>${formatDate(releaseDate)}</p>
+            ${genres ? `<p class="genres">${genres}</p>` : ""}
             <div class="type-badges">${typesBadges}</div>
         </div>
     `;
@@ -315,7 +346,7 @@ function updateFormPreview() {
 
 document
     .querySelectorAll(
-        "#imageUrl, #albumName, #albumArtists, #releaseDate, #vinylCheck, #cdCheck"
+        "#imageUrl, #albumName, #albumArtists, #releaseYear, #releaseMonth, #releaseDay, #vinylCheck, #cdCheck"
     )
     .forEach((input) => {
         input.addEventListener("input", updateFormPreview);
@@ -324,11 +355,62 @@ document
         }
     });
 
+document.querySelector("#imageUrl").addEventListener("input", async (e) => {
+    if (!e.target.value) {
+        await updateImageFromSpotify();
+    }
+    updateFormPreview();
+});
+
+document.querySelector("#albumLink").addEventListener("input", async (e) => {
+    const link = e.target.value;
+    if (link && link.includes("spotify.com")) {
+        const spotifyData = await getAlbumImageFromSpotify(link);
+        if (spotifyData) {
+            if (!document.querySelector("#albumName").value)
+                document.querySelector("#albumName").value =
+                    spotifyData.albumName || "";
+            if (!document.querySelector("#albumArtists").value)
+                document.querySelector("#albumArtists").value =
+                    spotifyData.artists.join(", ") || "";
+            if (!document.querySelector("#genres").value)
+                document.querySelector("#genres").value =
+                    spotifyData.genres.join(", ") || "";
+            if (!document.querySelector("#imageUrl").value)
+                document.querySelector("#imageUrl").value =
+                    spotifyData.imageUrl || "";
+            if (
+                !document.querySelector("#releaseYear").value &&
+                spotifyData.releaseDate
+            ) {
+                const parts = spotifyData.releaseDate.split("-");
+                document.querySelector("#releaseYear").value = parts[0] || "";
+                document.querySelector("#releaseMonth").value = parts[1] || "";
+                document.querySelector("#releaseDay").value = parts[2] || "";
+            }
+            updateFormPreview();
+        }
+    } else {
+        updateFormPreview();
+    }
+});
+
 let currentEditingId = null;
 
-function addItemFormSubmitHandler(event) {
+async function addItemFormSubmitHandler(event) {
     event.preventDefault();
     const imageUrl = document.querySelector("#imageUrl").value;
+    const albumLink = document.querySelector("#albumLink").value;
+
+    let finalImageUrl = imageUrl;
+    let genres = document.querySelector("#genres").value;
+
+    if (!imageUrl && albumLink && albumLink.includes("spotify.com")) {
+        const spotifyData = await getAlbumImageFromSpotify(albumLink);
+        finalImageUrl = spotifyData.imageUrl || "";
+        genres = genres || spotifyData.genres.join(", ");
+    }
+
     const albumName = document.querySelector("#albumName").value;
     const albumArtists = document.querySelector("#albumArtists").value;
     const yearInput = document.querySelector("#releaseYear");
@@ -340,20 +422,20 @@ function addItemFormSubmitHandler(event) {
     const day = dayInput.value.padStart(2, "0") || "01";
     const releaseDate = `${year}-${month}-${day}`;
     const wanted = document.querySelector("#wantedToggle").checked;
-    const albumLink = document.querySelector("#albumLink").value;
     const types = {
         vinyl: document.querySelector("#vinylCheck").checked,
         cd: document.querySelector("#cdCheck").checked,
     };
 
     const itemData = {
-        imageUrl,
+        imageUrl: finalImageUrl,
         albumName,
         albumArtists,
         releaseDate,
         wanted,
         types,
         albumLink: albumLink || null,
+        genres,
     };
 
     if (isEditing && currentEditingId) {
@@ -377,9 +459,56 @@ function addItemFormSubmitHandler(event) {
     currentEditingId = null;
 }
 
-addItemForm.addEventListener("submit", addItemFormSubmitHandler);
+addItemForm.addEventListener("submit", (event) => {
+    addItemFormSubmitHandler(event).catch(console.error);
+});
 
-document.querySelector("#results").addEventListener("click", (event) => {
+const deleteConfirmModal = document.querySelector("#deleteConfirmModal");
+const confirmDeleteBtn = document.querySelector("#confirmDelete");
+const cancelDeleteBtn = document.querySelector("#cancelDelete");
+let itemToDelete = null;
+
+function showDeleteConfirmation(item) {
+    itemToDelete = item;
+    const preview = deleteConfirmModal.querySelector(".delete-preview");
+
+    const typesBadges = Object.entries(item.types || {})
+        .filter(([_, checked]) => checked)
+        .map(
+            ([type]) => `<span class="type-badge">${type.toUpperCase()}</span>`
+        )
+        .join("");
+
+    preview.innerHTML = `
+        <img src="${item.imageUrl || "img/default.png"}" alt="Album Image">
+        <div class="album-info">
+            <h3>${item.albumName}</h3>
+            <p>${item.albumArtists}</p>
+            <p>${formatDate(item.releaseDate)}</p>
+            <div class="type-badges">${typesBadges}</div>
+        </div>
+    `;
+    deleteConfirmModal.style.display = "block";
+}
+
+confirmDeleteBtn.addEventListener("click", () => {
+    if (itemToDelete) {
+        const index = items.findIndex((item) => item.id === itemToDelete.id);
+        if (index !== -1) {
+            items.splice(index, 1);
+            refreshItems();
+        }
+    }
+    deleteConfirmModal.style.display = "none";
+    itemToDelete = null;
+});
+
+cancelDeleteBtn.addEventListener("click", () => {
+    deleteConfirmModal.style.display = "none";
+    itemToDelete = null;
+});
+
+document.querySelector("#results").addEventListener("click", async (event) => {
     const target = event.target.closest("button");
     if (!target) return;
 
@@ -395,12 +524,12 @@ document.querySelector("#results").addEventListener("click", (event) => {
         document.querySelector("#albumName").value = item.albumName || "";
         document.querySelector("#albumArtists").value = item.albumArtists || "";
         document.querySelector("#albumLink").value = item.albumLink || "";
+        document.querySelector("#genres").value = item.genres || "";
         document.querySelector("#wantedToggle").checked = Boolean(item.wanted);
         document.querySelector("#vinylCheck").checked = Boolean(
             item.types?.vinyl
         );
         document.querySelector("#cdCheck").checked = Boolean(item.types?.cd);
-
         if (item.releaseDate) {
             const [y, m, d] = item.releaseDate.split("-");
             document.querySelector("#releaseYear").value = y || "";
@@ -408,14 +537,51 @@ document.querySelector("#results").addEventListener("click", (event) => {
             document.querySelector("#releaseDay").value = parseInt(d) || "";
         }
 
+        const albumLinkInput = document.querySelector("#albumLink").value;
+        if (
+            albumLinkInput &&
+            (!document.querySelector("#genres").value ||
+                !document.querySelector("#imageUrl").value ||
+                !document.querySelector("#albumName").value ||
+                !document.querySelector("#albumArtists").value)
+        ) {
+            const spotifyData = await getAlbumImageFromSpotify(albumLinkInput);
+            if (spotifyData) {
+                if (!document.querySelector("#genres").value)
+                    document.querySelector("#genres").value =
+                        spotifyData.genres.join(", ");
+                if (!document.querySelector("#imageUrl").value)
+                    document.querySelector("#imageUrl").value =
+                        spotifyData.imageUrl || "";
+                if (!document.querySelector("#albumName").value)
+                    document.querySelector("#albumName").value =
+                        spotifyData.albumName || "";
+                if (!document.querySelector("#albumArtists").value)
+                    document.querySelector("#albumArtists").value =
+                        spotifyData.artists.join(", ");
+                if (
+                    !document.querySelector("#releaseYear").value &&
+                    spotifyData.releaseDate
+                ) {
+                    const parts = spotifyData.releaseDate.split("-");
+                    document.querySelector("#releaseYear").value =
+                        parts[0] || "";
+                    document.querySelector("#releaseMonth").value =
+                        parts[1] || "";
+                    document.querySelector("#releaseDay").value =
+                        parts[2] || "";
+                }
+            }
+        }
+
         modal.style.display = "block";
         updateFormPreview();
+        document.querySelector("#albumName").focus();
     } else if (target.classList.contains("removeButton")) {
-        const itemId = target.dataset.id;
-        const itemIndex = items.findIndex((item) => item.id === Number(itemId));
-        if (itemIndex !== -1) {
-            items.splice(itemIndex, 1);
-            refreshItems();
+        const itemId = Number(target.dataset.id);
+        const item = items.find((item) => item.id === itemId);
+        if (item) {
+            showDeleteConfirmation(item);
         }
     }
 });
@@ -426,6 +592,19 @@ closeModalButton.addEventListener("click", () => {
     currentEditingId = null;
     addItemForm.reset();
     formPreviewCard.innerHTML = "";
+});
+
+window.addEventListener("click", (event) => {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+    if (event.target == previewModal) {
+        previewModal.style.display = "none";
+    }
+    if (event.target == deleteConfirmModal) {
+        deleteConfirmModal.style.display = "none";
+        itemToDelete = null;
+    }
 });
 
 const exportButton = document.querySelector("#exportButton");
@@ -562,11 +741,18 @@ function saveNewOrder() {
 const randomButton = document.querySelector("#randomButton");
 
 randomButton.addEventListener("click", () => {
-    const displayedCards = document.querySelectorAll(".card:not(.wanted)");
-    if (displayedCards.length === 0) return;
+    const filteredItems = applyFilters(items);
+    const displayedCards = document.querySelectorAll(".card");
+    const availableCards = Array.from(displayedCards).filter((card) => {
+        if (card.classList.contains("wanted")) return false;
+        const itemId = Number(card.dataset.id);
+        return filteredItems.some((item) => item.id === itemId);
+    });
 
-    const randomIndex = Math.floor(Math.random() * displayedCards.length);
-    const targetCard = displayedCards[randomIndex];
+    if (availableCards.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * availableCards.length);
+    const targetCard = availableCards[randomIndex];
 
     document
         .querySelectorAll(".highlight")
@@ -617,4 +803,145 @@ function setupDateInputs() {
 document.addEventListener("DOMContentLoaded", () => {
     setupDateInputs();
     updateAddItemButtonIcon();
+});
+
+const filtersButton = document.querySelector("#filtersButton");
+const filtersPopup = document.querySelector("#filtersPopup");
+const filterVinyl = document.querySelector("#filterVinyl");
+const filterCD = document.querySelector("#filterCD");
+const filterArtist = document.querySelector("#filterArtist");
+const sortBy = document.querySelector("#sortBy");
+
+const filterGenre = document.querySelector("#filterGenre");
+
+function updateGenresList() {
+    let genresSet = new Set();
+    items.forEach((item) => {
+        if (item.genres) {
+            item.genres.split(",").forEach((genre) => {
+                const trimmed = genre.trim();
+                if (trimmed) genresSet.add(trimmed);
+            });
+        }
+    });
+
+    let genres = Array.from(genresSet).sort((a, b) => a.localeCompare(b));
+
+    filterGenre.innerHTML = `
+        <option value="">All Genres</option>
+        <option value="none">No Genre</option>
+    `;
+
+    genres.forEach((genre) => {
+        const opt = document.createElement("option");
+        opt.value = genre.toLowerCase();
+        opt.textContent = genre;
+        filterGenre.appendChild(opt);
+    });
+}
+
+function updateArtistsList() {
+    const artists = [...new Set(items.map((item) => item.albumArtists))].sort();
+    filterArtist.innerHTML = '<option value="">All Artists</option>';
+    artists.forEach((artist) => {
+        const opt = document.createElement("option");
+        opt.value = artist;
+        opt.textContent = artist;
+        filterArtist.appendChild(opt);
+    });
+    updateGenresList();
+}
+
+function applyFilters(itemsToFilter) {
+    let filteredItems = [...itemsToFilter];
+
+    if (filterVinyl.checked || filterCD.checked) {
+        filteredItems = filteredItems.filter((item) => {
+            if (filterVinyl.checked && filterCD.checked) {
+                return item.types?.vinyl && item.types?.cd;
+            }
+            return (
+                (filterVinyl.checked && item.types?.vinyl) ||
+                (filterCD.checked && item.types?.cd)
+            );
+        });
+    }
+
+    if (filterArtist.value) {
+        filteredItems = filteredItems.filter(
+            (item) => item.albumArtists === filterArtist.value
+        );
+    }
+    const selectedGenres = Array.from(filterGenre.selectedOptions)
+        .map((opt) => opt.value)
+        .filter((val) => val !== "");
+
+    if (selectedGenres.length) {
+        filteredItems = filteredItems.filter((item) => {
+            if (selectedGenres.includes("none")) {
+                return !item.genres || item.genres.trim() === "";
+            }
+
+            if (!item.genres || item.genres.trim() === "") {
+                return false;
+            }
+
+            const itemGenres = item.genres
+                .split(",")
+                .map((g) => g.trim().toLowerCase())
+                .filter((g) => g);
+
+            return selectedGenres.some((selected) =>
+                itemGenres.includes(selected.toLowerCase())
+            );
+        });
+    }
+
+    if (sortBy.value !== "custom") {
+        filteredItems.sort((a, b) => {
+            switch (sortBy.value) {
+                case "name":
+                    return a.albumName.localeCompare(b.albumName);
+                case "artist":
+                    return a.albumArtists.localeCompare(b.albumArtists);
+                case "year":
+                    return a.releaseDate.localeCompare(b.releaseDate);
+                default:
+                    return 0;
+            }
+        });
+    }
+
+    return filteredItems;
+}
+
+filterGenre.addEventListener("change", () => {
+    searchItems(searchInput.value);
+});
+
+[filterVinyl, filterCD, filterArtist, filterGenre, sortBy].forEach((filter) => {
+    filter.addEventListener("change", () => {
+        searchItems(searchInput.value);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const filtersButton = document.querySelector("#filtersButton");
+    const filtersPopup = document.querySelector("#filtersPopup");
+
+    filtersButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        console.log("Filters button clicked");
+        filtersPopup.classList.toggle("show");
+        updateArtistsList();
+    });
+
+    document.addEventListener("click", (e) => {
+        if (
+            !filtersPopup.contains(e.target) &&
+            !filtersButton.contains(e.target)
+        ) {
+            filtersPopup.classList.remove("show");
+        }
+    });
 });
