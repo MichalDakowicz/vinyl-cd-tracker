@@ -23,7 +23,29 @@ if (darkMode === "enabled") {
 
 function getIconPath(iconName) {
     const darkMode = body.classList.contains("dark-mode");
-    return darkMode ? `img/${iconName}-dark-mode.svg` : `img/${iconName}.svg`;
+    const defaultPath = `img/${iconName}.svg`;
+
+    if (!darkMode) return defaultPath;
+
+    const darkModePath = `img/${iconName}.svg`;
+
+    const darkModeIcons = [
+        "add",
+        "edit",
+        "delete",
+        "filter",
+        "stats",
+        "grid",
+        "list",
+        "export",
+        "import",
+        "refresh",
+        "link",
+        "clear",
+        "random",
+    ];
+
+    return darkModeIcons.includes(iconName) ? darkModePath : defaultPath;
 }
 
 function updateAddItemButtonIcon() {
@@ -52,6 +74,9 @@ function updateAddItemButtonIcon() {
 
     const filterButtonIcon = document.querySelector("#filtersButton img");
     filterButtonIcon.src = getIconPath("filter");
+
+    const statsButtonIcon = document.querySelector("#statsButton img");
+    statsButtonIcon.src = getIconPath("stats");
 }
 
 darkModeToggle.addEventListener("change", (event) => {
@@ -68,20 +93,22 @@ const modal = document.querySelector("#addItemModal");
 const addItemButton = document.querySelector("#addItemButton");
 const closeModalButton = document.querySelector(".close");
 const addItemForm = document.querySelector("#addItemForm");
+let artistsTagInput;
+let genresTagInput;
 
 addItemButton.addEventListener("click", () => {
-    modal.style.display = "block";
+    modal.classList.add("show");
     addItemForm.reset();
     formPreviewCard.innerHTML = "";
 });
 
 closeModalButton.addEventListener("click", () => {
-    modal.style.display = "none";
+    modal.classList.remove("show");
 });
 
 window.addEventListener("click", (event) => {
     if (event.target == modal) {
-        modal.style.display = "none";
+        modal.classList.remove("show");
     }
 });
 
@@ -184,7 +211,14 @@ function renderItems(itemsToRender) {
 
         const imageUrl = item.imageUrl || "";
         const albumName = item.albumName || "Untitled";
-        const albumArtists = item.albumArtists || "Unknown Artist";
+        const albumArtists = Array.isArray(item.albumArtists)
+            ? item.albumArtists.join(" • ")
+            : item.albumArtists || "Unknown Artist";
+
+        const genresList =
+            Array.isArray(item.genres) && item.genres.length > 0
+                ? `<p class="genres">${item.genres.join(" • ")}</p>`
+                : "";
         const releaseDate =
             item.releaseDate || new Date().toISOString().split("T")[0];
 
@@ -195,6 +229,11 @@ function renderItems(itemsToRender) {
             }">
                 <img src="${getIconPath("link")}" alt="Link">
             </button>
+            <button class="updateButton" title="Update from Spotify" data-id="${
+                item.id
+            }">
+                <img src="${getIconPath("refresh")}" alt="Update">
+            </button>
         `
             : "";
 
@@ -204,6 +243,7 @@ function renderItems(itemsToRender) {
                 <h3>${albumName}</h3>
                 <p>${albumArtists}</p>
                 <p>${formatDate(releaseDate)}</p>
+                ${genresList}
                 <div class="type-badges">${typesBadges}</div>
             </div>
             <div class="actions">
@@ -243,7 +283,16 @@ function searchItems(query) {
     const searchQuery = query.toLowerCase().trim();
     const filteredItems = items.filter((item) => {
         const albumName = (item.albumName || "").toLowerCase();
-        const albumArtists = (item.albumArtists || "").toLowerCase();
+        const artistsMatch =
+            Array.isArray(item.albumArtists) &&
+            item.albumArtists.some((artist) =>
+                artist.toLowerCase().includes(searchQuery)
+            );
+        const genresMatch =
+            Array.isArray(item.genres) &&
+            item.genres.some((genre) =>
+                genre.toLowerCase().includes(searchQuery)
+            );
         const releaseDate = formatDate(item.releaseDate || "");
         const types = Object.entries(item.types || {})
             .filter(([_, checked]) => checked)
@@ -251,7 +300,8 @@ function searchItems(query) {
 
         return (
             albumName.includes(searchQuery) ||
-            albumArtists.includes(searchQuery) ||
+            artistsMatch ||
+            genresMatch ||
             releaseDate.includes(searchQuery) ||
             types.some((type) => type.includes(searchQuery))
         );
@@ -279,6 +329,7 @@ searchInput.addEventListener("keypress", (e) => {
 function refreshItems() {
     saveItemsToLocalStorage(items);
     searchItems(searchInput.value);
+    updateStats();
 }
 
 renderItems(items);
@@ -331,15 +382,17 @@ function updateFormPreview() {
         .join("");
 
     formPreviewCard.innerHTML = `
-        <img src="${
-            imageUrl || "img/default.png"
-        }" alt="Album Image" onerror="this.src='img/default.png'">
+        <div class="preview-image-container">
+            <img src="${
+                imageUrl || "img/default.png"
+            }" alt="Album Image" onerror="this.src='img/default.png'">
+            <div class="type-badges">${typesBadges}</div>
+        </div>
         <div class="album-info">
             <h3>${albumName}</h3>
             <p>${albumArtists}</p>
             <p>${formatDate(releaseDate)}</p>
             ${genres ? `<p class="genres">${genres}</p>` : ""}
-            <div class="type-badges">${typesBadges}</div>
         </div>
     `;
 }
@@ -370,12 +423,15 @@ document.querySelector("#albumLink").addEventListener("input", async (e) => {
             if (!document.querySelector("#albumName").value)
                 document.querySelector("#albumName").value =
                     spotifyData.albumName || "";
+
             if (!document.querySelector("#albumArtists").value)
                 document.querySelector("#albumArtists").value =
-                    spotifyData.artists.join(", ") || "";
+                    spotifyData.artists && spotifyData.artists.length > 0
+                        ? spotifyData.artists.join(" • ")
+                        : "";
             if (!document.querySelector("#genres").value)
                 document.querySelector("#genres").value =
-                    spotifyData.genres.join(", ") || "";
+                    spotifyData.genres || [];
             if (!document.querySelector("#imageUrl").value)
                 document.querySelector("#imageUrl").value =
                     spotifyData.imageUrl || "";
@@ -403,16 +459,29 @@ async function addItemFormSubmitHandler(event) {
     const albumLink = document.querySelector("#albumLink").value;
 
     let finalImageUrl = imageUrl;
-    let genres = document.querySelector("#genres").value;
+    let genres = [];
+    let artists = [];
 
     if (!imageUrl && albumLink && albumLink.includes("spotify.com")) {
         const spotifyData = await getAlbumImageFromSpotify(albumLink);
         finalImageUrl = spotifyData.imageUrl || "";
-        genres = genres || spotifyData.genres.join(", ");
+        genres = spotifyData.genres || [];
+
+        artists = spotifyData.artists || [];
+    } else {
+        const artistInput = document.querySelector("#albumArtists").value;
+        artists = artistInput
+            .split(" • ")
+            .map((a) => a.trim())
+            .filter((a) => a);
+        genres = document
+            .querySelector("#genres")
+            .value.split(",")
+            .map((g) => g.trim())
+            .filter((g) => g);
     }
 
     const albumName = document.querySelector("#albumName").value;
-    const albumArtists = document.querySelector("#albumArtists").value;
     const yearInput = document.querySelector("#releaseYear");
     const monthInput = document.querySelector("#releaseMonth");
     const dayInput = document.querySelector("#releaseDay");
@@ -430,12 +499,12 @@ async function addItemFormSubmitHandler(event) {
     const itemData = {
         imageUrl: finalImageUrl,
         albumName,
-        albumArtists,
+        albumArtists: artists,
+        genres: genres,
         releaseDate,
         wanted,
         types,
         albumLink: albumLink || null,
-        genres,
     };
 
     if (isEditing && currentEditingId) {
@@ -451,7 +520,7 @@ async function addItemFormSubmitHandler(event) {
     }
 
     refreshItems();
-    modal.style.display = "none";
+    modal.classList.remove("show");
     addItemForm.reset();
     formPreviewCard.innerHTML = "";
 
@@ -480,15 +549,21 @@ function showDeleteConfirmation(item) {
         .join("");
 
     preview.innerHTML = `
-        <img src="${item.imageUrl || "img/default.png"}" alt="Album Image">
-        <div class="album-info">
-            <h3>${item.albumName}</h3>
-            <p>${item.albumArtists}</p>
-            <p>${formatDate(item.releaseDate)}</p>
+        <div class="preview-image-container">
+            <img src="${item.imageUrl || "img/default.png"}" alt="Album Image">
             <div class="type-badges">${typesBadges}</div>
         </div>
+        <div class="album-info">
+            <h3>${item.albumName}</h3>
+            <p>${
+                Array.isArray(item.albumArtists)
+                    ? item.albumArtists.join(" • ")
+                    : item.albumArtists || "Unknown Artist"
+            }</p>
+            <p>${formatDate(item.releaseDate)}</p>
+        </div>
     `;
-    deleteConfirmModal.style.display = "block";
+    deleteConfirmModal.classList.add("show");
 }
 
 confirmDeleteBtn.addEventListener("click", () => {
@@ -512,6 +587,42 @@ document.querySelector("#results").addEventListener("click", async (event) => {
     const target = event.target.closest("button");
     if (!target) return;
 
+    if (target.classList.contains("updateButton")) {
+        const itemId = Number(target.dataset.id);
+        const item = items.find((item) => item.id === itemId);
+        if (!item || !item.albumLink) return;
+
+        target.disabled = true;
+        const originalImg = target.querySelector("img").src;
+        target.querySelector("img").src = getIconPath("loading");
+
+        try {
+            const spotifyData = await getAlbumImageFromSpotify(item.albumLink);
+            if (spotifyData) {
+                const updatedItem = {
+                    ...item,
+                    imageUrl: spotifyData.imageUrl || item.imageUrl,
+                    albumName: spotifyData.albumName || item.albumName,
+                    albumArtists: spotifyData.artists || item.albumArtists,
+                    genres: spotifyData.genres || item.genres,
+                    releaseDate: spotifyData.releaseDate || item.releaseDate,
+                };
+
+                const index = items.findIndex((i) => i.id === itemId);
+                if (index !== -1) {
+                    items[index] = updatedItem;
+                    refreshItems();
+                }
+            }
+        } catch (error) {
+            console.error("Failed to update from Spotify:", error);
+        } finally {
+            target.disabled = false;
+            target.querySelector("img").src = getIconPath("refresh");
+        }
+        return;
+    }
+
     if (target.classList.contains("editButton")) {
         const itemId = Number(target.dataset.id);
         const item = items.find((item) => item.id === itemId);
@@ -522,14 +633,27 @@ document.querySelector("#results").addEventListener("click", async (event) => {
 
         document.querySelector("#imageUrl").value = item.imageUrl || "";
         document.querySelector("#albumName").value = item.albumName || "";
-        document.querySelector("#albumArtists").value = item.albumArtists || "";
         document.querySelector("#albumLink").value = item.albumLink || "";
-        document.querySelector("#genres").value = item.genres || "";
         document.querySelector("#wantedToggle").checked = Boolean(item.wanted);
         document.querySelector("#vinylCheck").checked = Boolean(
             item.types?.vinyl
         );
         document.querySelector("#cdCheck").checked = Boolean(item.types?.cd);
+
+        const artistsInput = artistsTagInput;
+        const genresInput = genresTagInput;
+
+        artistsInput.clearTags();
+        genresInput.clearTags();
+
+        if (Array.isArray(item.albumArtists)) {
+            item.albumArtists.forEach((artist) => artistsInput.addTag(artist));
+        }
+
+        if (Array.isArray(item.genres)) {
+            item.genres.forEach((genre) => genresInput.addTag(genre));
+        }
+
         if (item.releaseDate) {
             const [y, m, d] = item.releaseDate.split("-");
             document.querySelector("#releaseYear").value = y || "";
@@ -537,44 +661,7 @@ document.querySelector("#results").addEventListener("click", async (event) => {
             document.querySelector("#releaseDay").value = parseInt(d) || "";
         }
 
-        const albumLinkInput = document.querySelector("#albumLink").value;
-        if (
-            albumLinkInput &&
-            (!document.querySelector("#genres").value ||
-                !document.querySelector("#imageUrl").value ||
-                !document.querySelector("#albumName").value ||
-                !document.querySelector("#albumArtists").value)
-        ) {
-            const spotifyData = await getAlbumImageFromSpotify(albumLinkInput);
-            if (spotifyData) {
-                if (!document.querySelector("#genres").value)
-                    document.querySelector("#genres").value =
-                        spotifyData.genres.join(", ");
-                if (!document.querySelector("#imageUrl").value)
-                    document.querySelector("#imageUrl").value =
-                        spotifyData.imageUrl || "";
-                if (!document.querySelector("#albumName").value)
-                    document.querySelector("#albumName").value =
-                        spotifyData.albumName || "";
-                if (!document.querySelector("#albumArtists").value)
-                    document.querySelector("#albumArtists").value =
-                        spotifyData.artists.join(", ");
-                if (
-                    !document.querySelector("#releaseYear").value &&
-                    spotifyData.releaseDate
-                ) {
-                    const parts = spotifyData.releaseDate.split("-");
-                    document.querySelector("#releaseYear").value =
-                        parts[0] || "";
-                    document.querySelector("#releaseMonth").value =
-                        parts[1] || "";
-                    document.querySelector("#releaseDay").value =
-                        parts[2] || "";
-                }
-            }
-        }
-
-        modal.style.display = "block";
+        modal.classList.add("show");
         updateFormPreview();
         document.querySelector("#albumName").focus();
     } else if (target.classList.contains("removeButton")) {
@@ -587,7 +674,7 @@ document.querySelector("#results").addEventListener("click", async (event) => {
 });
 
 closeModalButton.addEventListener("click", () => {
-    modal.style.display = "none";
+    modal.classList.remove("show");
     isEditing = false;
     currentEditingId = null;
     addItemForm.reset();
@@ -596,7 +683,7 @@ closeModalButton.addEventListener("click", () => {
 
 window.addEventListener("click", (event) => {
     if (event.target == modal) {
-        modal.style.display = "none";
+        modal.classList.remove("show");
     }
     if (event.target == previewModal) {
         previewModal.style.display = "none";
@@ -815,18 +902,16 @@ const sortBy = document.querySelector("#sortBy");
 const filterGenre = document.querySelector("#filterGenre");
 
 function updateGenresList() {
-    let genresSet = new Set();
+    const genresSet = new Set();
     items.forEach((item) => {
-        if (item.genres) {
-            item.genres.split(",").forEach((genre) => {
-                const trimmed = genre.trim();
-                if (trimmed) genresSet.add(trimmed);
+        if (Array.isArray(item.genres)) {
+            item.genres.forEach((genre) => {
+                if (genre) genresSet.add(genre);
             });
         }
     });
 
-    let genres = Array.from(genresSet).sort((a, b) => a.localeCompare(b));
-
+    const genres = Array.from(genresSet).sort();
     filterGenre.innerHTML = `
         <option value="">All Genres</option>
         <option value="none">No Genre</option>
@@ -841,7 +926,16 @@ function updateGenresList() {
 }
 
 function updateArtistsList() {
-    const artists = [...new Set(items.map((item) => item.albumArtists))].sort();
+    const artistSet = new Set();
+    items.forEach((item) => {
+        if (Array.isArray(item.albumArtists)) {
+            item.albumArtists.forEach((artist) => {
+                if (artist) artistSet.add(artist);
+            });
+        }
+    });
+
+    const artists = Array.from(artistSet).sort();
     filterArtist.innerHTML = '<option value="">All Artists</option>';
     artists.forEach((artist) => {
         const opt = document.createElement("option");
@@ -849,6 +943,7 @@ function updateArtistsList() {
         opt.textContent = artist;
         filterArtist.appendChild(opt);
     });
+
     updateGenresList();
 }
 
@@ -869,9 +964,12 @@ function applyFilters(itemsToFilter) {
 
     if (filterArtist.value) {
         filteredItems = filteredItems.filter(
-            (item) => item.albumArtists === filterArtist.value
+            (item) =>
+                Array.isArray(item.albumArtists) &&
+                item.albumArtists.includes(filterArtist.value)
         );
     }
+
     const selectedGenres = Array.from(filterGenre.selectedOptions)
         .map((opt) => opt.value)
         .filter((val) => val !== "");
@@ -879,20 +977,21 @@ function applyFilters(itemsToFilter) {
     if (selectedGenres.length) {
         filteredItems = filteredItems.filter((item) => {
             if (selectedGenres.includes("none")) {
-                return !item.genres || item.genres.trim() === "";
+                return (
+                    !item.genres ||
+                    !Array.isArray(item.genres) ||
+                    item.genres.length === 0
+                );
             }
 
-            if (!item.genres || item.genres.trim() === "") {
+            if (!Array.isArray(item.genres) || item.genres.length === 0) {
                 return false;
             }
 
-            const itemGenres = item.genres
-                .split(",")
-                .map((g) => g.trim().toLowerCase())
-                .filter((g) => g);
-
             return selectedGenres.some((selected) =>
-                itemGenres.includes(selected.toLowerCase())
+                item.genres
+                    .map((g) => g.toLowerCase())
+                    .includes(selected.toLowerCase())
             );
         });
     }
@@ -944,4 +1043,351 @@ document.addEventListener("DOMContentLoaded", () => {
             filtersPopup.classList.remove("show");
         }
     });
+});
+
+const albumViewModal = document.querySelector("#albumViewModal");
+const albumViewClose = albumViewModal.querySelector(".close");
+
+albumViewClose.addEventListener("click", () => {
+    albumViewModal.classList.remove("show");
+});
+
+document.querySelector("#results").addEventListener("click", (event) => {
+    const isActionButton = event.target.closest(".actions");
+    const isCardImage = event.target.closest(".card img:not(.actions img)");
+    const card = event.target.closest(".card");
+
+    if (isActionButton || isCardImage || !card) return;
+
+    const itemId = Number(card.dataset.id);
+    const item = items.find((item) => item.id === itemId);
+    if (!item) return;
+
+    const modal = document.querySelector("#albumViewModal");
+    modal.querySelector(".album-cover img").src =
+        item.imageUrl || "img/default.png";
+    modal.querySelector(".album-title").textContent = item.albumName;
+
+    const artistsDisplay = Array.isArray(item.albumArtists)
+        ? item.albumArtists.join(" • ")
+        : item.albumArtists;
+    modal.querySelector(".album-artist").textContent = artistsDisplay;
+
+    modal.querySelector(".album-date").textContent = formatDate(
+        item.releaseDate
+    );
+
+    const genresDisplay =
+        Array.isArray(item.genres) && item.genres.length > 0
+            ? item.genres.map((genre) => `<span>${genre}</span>`).join(" ")
+            : "No genres listed";
+    modal.querySelector(".album-genres").innerHTML = genresDisplay;
+
+    const badges = Object.entries(item.types || {})
+        .filter(([_, checked]) => checked)
+        .map(
+            ([type]) => `<span class="type-badge">${type.toUpperCase()}</span>`
+        )
+        .join("");
+    modal.querySelector(".album-badges").innerHTML = badges;
+
+    const spotifyLink = modal.querySelector(".spotify-link");
+    if (item.albumLink) {
+        spotifyLink.href = item.albumLink;
+        spotifyLink.style.display = "inline-flex";
+    } else {
+        spotifyLink.style.display = "none";
+    }
+
+    modal.classList.add("show");
+});
+
+window.addEventListener("click", (event) => {
+    if (event.target === albumViewModal) {
+        albumViewModal.classList.remove("show");
+    }
+});
+
+const statsModal = document.querySelector("#statsModal");
+const statsButton = document.querySelector("#statsButton");
+
+function updateStats() {
+    const totalItems = items.length;
+
+    const vinylOwned = items.filter(
+        (item) => !item.wanted && item.types?.vinyl
+    ).length;
+    const vinylWanted = items.filter(
+        (item) => item.wanted && item.types?.vinyl
+    ).length;
+
+    const cdOwned = items.filter(
+        (item) => !item.wanted && item.types?.cd
+    ).length;
+    const cdWanted = items.filter(
+        (item) => item.wanted && item.types?.cd
+    ).length;
+
+    const wantedCount = items.filter((item) => item.wanted).length;
+
+    const ownedItems = items.filter((item) => !item.wanted).length;
+
+    const progressPercentage =
+        totalItems > 0 ? (ownedItems / totalItems) * 100 : 0;
+
+    document.querySelector(
+        "#libraryProgress"
+    ).style.width = `${progressPercentage}%`;
+    document.querySelector("#progressValue").textContent = `${Math.round(
+        progressPercentage
+    )}%`;
+
+    document.querySelector("#totalItems").textContent = totalItems;
+    document.querySelector("#ownedCount").textContent = ownedItems;
+    document.querySelector("#vinylOwnedCount").textContent = vinylOwned;
+    document.querySelector("#vinylWantedCount").textContent = vinylWanted;
+    document.querySelector("#cdOwnedCount").textContent = cdOwned;
+    document.querySelector("#cdWantedCount").textContent = cdWanted;
+    document.querySelector("#wantedCount").textContent = wantedCount;
+
+    const uniqueArtists = new Set(
+        items.flatMap((item) =>
+            Array.isArray(item.albumArtists) ? item.albumArtists : []
+        )
+    );
+    const uniqueGenres = new Set(
+        items.flatMap((item) => (Array.isArray(item.genres) ? item.genres : []))
+    );
+
+    document.querySelector("#totalArtists").textContent = uniqueArtists.size;
+    document.querySelector("#totalGenres").textContent = uniqueGenres.size;
+
+    const years = items
+        .map((item) => parseInt(item.releaseDate?.split("-")[0]))
+        .filter((year) => !isNaN(year));
+
+    const oldestYear = Math.min(...years);
+    const newestYear = Math.max(...years);
+    const yearsSpan = years.length ? newestYear - oldestYear + 1 : 0;
+
+    const yearFrequency = years.reduce((acc, year) => {
+        acc[year] = (acc[year] || 0) + 1;
+        return acc;
+    }, {});
+
+    const mostCommonYear =
+        Object.entries(yearFrequency).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+        "-";
+
+    const artistFrequency = items.reduce((acc, item) => {
+        if (Array.isArray(item.albumArtists)) {
+            item.albumArtists.forEach((artist) => {
+                acc[artist] = (acc[artist] || 0) + 1;
+            });
+        }
+        return acc;
+    }, {});
+
+    const mostCommonArtist =
+        Object.entries(artistFrequency).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+        "-";
+
+    document.querySelector("#totalYears").textContent = yearsSpan || "-";
+    document.querySelector("#oldestYear").textContent = years.length
+        ? oldestYear
+        : "-";
+    document.querySelector("#newestYear").textContent = years.length
+        ? newestYear
+        : "-";
+    document.querySelector("#mostCommonYear").textContent = mostCommonYear;
+    document.querySelector("#mostCommonArtist").textContent = mostCommonArtist;
+}
+
+function initializeTagInput(containerId, inputId, placeholder) {
+    const container = document.createElement("div");
+    container.className = "tag-input-container";
+
+    const row = document.createElement("div");
+    row.className = "tag-input-row";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "tag-input";
+    input.placeholder = placeholder;
+    input.setAttribute("list", `${inputId}-datalist`);
+
+    const datalist = document.createElement("datalist");
+    datalist.id = `${inputId}-datalist`;
+    document.body.appendChild(datalist);
+
+    const addButton = document.createElement("button");
+    addButton.className = "add-tag-button";
+    addButton.textContent = "+";
+
+    const hiddenInput = document.querySelector(`#${inputId}`);
+    const tags = new Set();
+
+    function updateSuggestions() {
+        const suggestions = new Set();
+        items.forEach((item) => {
+            if (
+                inputId === "albumArtists" &&
+                Array.isArray(item.albumArtists)
+            ) {
+                item.albumArtists.forEach((artist) => suggestions.add(artist));
+            } else if (inputId === "genres" && Array.isArray(item.genres)) {
+                item.genres.forEach((genre) => suggestions.add(genre));
+            }
+        });
+
+        datalist.innerHTML = "";
+
+        suggestions.forEach((value) => {
+            const option = document.createElement("option");
+            option.value = value;
+            datalist.appendChild(option);
+        });
+    }
+
+    function updateHiddenInput() {
+        hiddenInput.value = Array.from(tags).join(" • ");
+        updateFormPreview();
+    }
+
+    function addTag(value) {
+        if (!value.trim()) return;
+
+        tags.add(value.trim());
+        updateHiddenInput();
+        renderTags();
+        input.value = "";
+    }
+
+    function removeTag(value) {
+        tags.delete(value);
+        updateHiddenInput();
+        renderTags();
+    }
+
+    function renderTags() {
+        while (container.firstChild) {
+            if (container.firstChild === row) break;
+            container.removeChild(container.firstChild);
+        }
+
+        Array.from(tags).forEach((tag) => {
+            const tagElement = document.createElement("div");
+            tagElement.className = "tag";
+            tagElement.textContent = tag;
+
+            const removeButton = document.createElement("button");
+            removeButton.className = "tag-remove";
+            removeButton.textContent = "×";
+            removeButton.onclick = () => removeTag(tag);
+
+            tagElement.appendChild(removeButton);
+            container.insertBefore(tagElement, row);
+        });
+    }
+
+    addButton.onclick = (e) => {
+        e.preventDefault();
+        addTag(input.value);
+    };
+
+    input.onkeydown = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            addTag(input.value);
+        }
+        if (e.key === "Backspace" && input.value === "" && tags.size > 0) {
+            const lastTag = Array.from(tags).pop();
+            removeTag(lastTag);
+        }
+    };
+
+    if (hiddenInput.value) {
+        hiddenInput.value.split(" • ").forEach((tag) => tags.add(tag.trim()));
+        renderTags();
+    }
+
+    row.appendChild(input);
+    row.appendChild(addButton);
+    container.appendChild(row);
+
+    hiddenInput.style.display = "none";
+    hiddenInput.parentNode.insertBefore(container, hiddenInput);
+
+    updateSuggestions();
+
+    return {
+        container,
+        updateSuggestions,
+        addTag,
+        clearTags: () => {
+            tags.clear();
+            updateHiddenInput();
+            renderTags();
+        },
+    };
+}
+
+document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.classList.remove("show");
+        }
+    });
+});
+
+statsButton.addEventListener("click", () => {
+    updateStats();
+    statsModal.classList.add("show");
+});
+
+statsModal.querySelector(".close").addEventListener("click", () => {
+    statsModal.classList.remove("show");
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    setupDateInputs();
+    updateAddItemButtonIcon();
+    updateStats();
+    artistsTagInput = initializeTagInput(
+        "artistsContainer",
+        "albumArtists",
+        "Add artist..."
+    );
+    genresTagInput = initializeTagInput(
+        "genresContainer",
+        "genres",
+        "Add genre..."
+    );
+
+    artistsTagInput.updateSuggestions();
+    genresTagInput.updateSuggestions();
+});
+
+document.querySelectorAll(".modal").forEach((modal) => {
+    const closeBtn = modal.querySelector(".close");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            modal.classList.remove("show");
+        });
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        document.querySelectorAll(".modal").forEach((modal) => {
+            modal.classList.remove("show");
+        });
+
+        const filtersPopup = document.querySelector("#filtersPopup");
+        if (filtersPopup) {
+            filtersPopup.classList.remove("show");
+        }
+
+        itemToDelete = null;
+    }
 });

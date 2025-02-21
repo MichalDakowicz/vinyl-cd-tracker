@@ -12,6 +12,9 @@
             <div class="header">
                 <h1>Vinyl/CD Tracker</h1>
                 <div class="header-buttons">
+                    <button id="statsButton" title="Statistics">
+                        <img src="img/stats.svg" alt="Statistics" />
+                    </button>
                     <button id="viewModeButton" title="Toggle View">
                         <img src="img/grid.svg" alt="Toggle View" />
                     </button>
@@ -87,6 +90,13 @@
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <form id="addItemForm">
+                    <label for="albumLink">Album Link (optional):</label>
+                    <input
+                        type="url"
+                        id="albumLink"
+                        name="albumLink"
+                        placeholder="Spotify, Tidal, etc. URL (Spotify preferred for auto fetching data)"
+                    />
                     <label for="imageUrl">Image URL:</label>
                     <input
                         type="text"
@@ -102,20 +112,17 @@
                         required
                     />
                     <label for="albumArtists">Album Artists:</label>
+                    <div id="artistsContainer"></div>
                     <input
-                        type="text"
+                        type="hidden"
                         id="albumArtists"
                         name="albumArtists"
                         required
                     />
 
                     <label for="genres">Genres:</label>
-                    <input
-                        type="text"
-                        id="genres"
-                        name="genres"
-                        placeholder="Will be fetched from Spotify if available"
-                    />
+                    <div id="genresContainer"></div>
+                    <input type="hidden" id="genres" name="genres" />
 
                     <label for="releaseDate">Release Date:</label>
                     <div class="date-input-container">
@@ -142,13 +149,7 @@
                             required
                         />
                     </div>
-                    <label for="albumLink">Album Link (optional):</label>
-                    <input
-                        type="url"
-                        id="albumLink"
-                        name="albumLink"
-                        placeholder="Spotify, Tidal, etc. URL"
-                    />
+
                     <div class="form-row type-checkboxes">
                         <label>Type:</label>
                         <div class="checkbox-group">
@@ -205,7 +206,148 @@
                 </div>
             </div>
         </div>
+
+        <div id="albumViewModal" class="modal">
+            <div class="modal-content album-view-content">
+                <span class="close">&times;</span>
+                <div class="album-view-layout">
+                    <div class="album-cover">
+                        <img src="" alt="Album Cover" />
+                    </div>
+                    <div class="album-details">
+                        <h2 class="album-title"></h2>
+                        <p class="album-artist"></p>
+                        <p class="album-date"></p>
+                        <p class="album-genres"></p>
+                        <div class="album-actions">
+                            <a href="#" class="spotify-link" target="_blank">
+                                <img src="img/link.svg" alt="Open in Spotify" />
+                                Open in Spotify
+                            </a>
+                            <div class="album-badges"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statsModal" class="modal">
+            <div class="modal-content stats-content">
+                <span class="close">&times;</span>
+                <h2>Collection Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stats-summary">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div
+                                    class="progress-fill"
+                                    id="libraryProgress"
+                                ></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span class="progress-label"
+                                    >Library Progress</span
+                                >
+                                <span class="progress-value" id="progressValue"
+                                    >0%</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalItems">0</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="wantedCount">0</div>
+                        <div class="stat-label">Wanted Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="ownedCount">0</div>
+                        <div class="stat-label">Total Owned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-split">
+                            <div class="stat-group">
+                                <div class="stat-value" id="vinylOwnedCount">
+                                    0
+                                </div>
+                                <div class="stat-label">Owned</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-group">
+                                <div class="stat-value" id="vinylWantedCount">
+                                    0
+                                </div>
+                                <div class="stat-label">Wanted</div>
+                            </div>
+                        </div>
+                        <div class="stat-label">Vinyl Records</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-split">
+                            <div class="stat-group">
+                                <div class="stat-value" id="cdOwnedCount">
+                                    0
+                                </div>
+                                <div class="stat-label">Owned</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-group">
+                                <div class="stat-value" id="cdWantedCount">
+                                    0
+                                </div>
+                                <div class="stat-label">Wanted</div>
+                            </div>
+                        </div>
+                        <div class="stat-label">CDs</div>
+                    </div>
+                    <div class="stat-card wide">
+                        <div class="stat-split">
+                            <div class="stat-group">
+                                <div class="stat-value" id="totalArtists">
+                                    0
+                                </div>
+                                <div class="stat-label">Unique Artists</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-group">
+                                <div class="stat-value" id="totalGenres">0</div>
+                                <div class="stat-label">Unique Genres</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-group">
+                                <div class="stat-value" id="totalYears">0</div>
+                                <div class="stat-label">Years Span</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-split">
+                            <div class="stat-group">
+                                <div class="stat-value" id="oldestYear">-</div>
+                                <div class="stat-label">Oldest</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-group">
+                                <div class="stat-value" id="newestYear">-</div>
+                                <div class="stat-label">Newest</div>
+                            </div>
+                        </div>
+                        <div class="stat-label">Release Years</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="mostCommonYear">-</div>
+                        <div class="stat-label">Most Common Year</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="mostCommonArtist">-</div>
+                        <div class="stat-label">Most Common Artist</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
-    <script src="js/spotify.js"></script>
+    <script src="spotify.js"></script>
     <script src="script.js"></script>
 </html>

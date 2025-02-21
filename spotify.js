@@ -66,54 +66,32 @@ async function getAlbumImageFromSpotify(spotifyUrl) {
             };
         }
         const albumData = await albumResponse.json();
-        console.log("📝 Album data:", {
-            name: albumData.name,
-            artists: albumData.artists?.map((a) => a.name),
-            genres: albumData.genres,
-            release_date: albumData.release_date,
-            totalImages: albumData.images?.length,
-        });
 
         let albumGenres = albumData.genres || [];
-        if (
-            albumGenres.length === 0 &&
-            albumData.artists &&
-            albumData.artists[0]
-        ) {
-            const artistId = albumData.artists[0].id;
-            console.log(
-                "👤 Album has no genres; fetching artist data for ID:",
-                artistId
-            );
-            const artistResponse = await fetch(
-                `https://api.spotify.com/v1/artists/${artistId}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            if (artistResponse.ok) {
-                const artistData = await artistResponse.json();
-                console.log("🎨 Artist genres:", artistData.genres);
-                albumGenres = artistData.genres || [];
-            } else {
-                console.warn(
-                    "⚠️ Failed to fetch artist data:",
-                    artistResponse.statusText
-                );
-            }
-        }
+        const artistPromises = albumData.artists.map((artist) =>
+            fetch(`https://api.spotify.com/v1/artists/${artist.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            }).then((res) => res.json())
+        );
 
-        const albumName = albumData.name || null;
-        const releaseDate = albumData.release_date || null;
-        const artists = albumData.artists?.map((artist) => artist.name) || [];
+        console.log("👥 Fetching all artists' data...");
+        const artistsData = await Promise.all(artistPromises);
+
+        const allGenres = new Set(albumGenres);
+        artistsData.forEach((artist) => {
+            if (artist.genres) {
+                artist.genres.forEach((genre) => allGenres.add(genre));
+            }
+        });
 
         const result = {
             imageUrl: albumData.images[0]?.url || null,
-            genres: albumGenres,
-            albumName: albumName,
-            releaseDate: releaseDate,
-            artists: artists,
+            genres: Array.from(allGenres),
+            albumName: albumData.name || null,
+            releaseDate: albumData.release_date || null,
+            artists: albumData.artists?.map((artist) => artist.name) || [],
         };
+
         console.log("🎉 Final result:", result);
         return result;
     } catch (error) {
