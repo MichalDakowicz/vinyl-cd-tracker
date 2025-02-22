@@ -27,7 +27,12 @@
                 </div>
             </div>
             <div class="search">
-                <input type="text" id="search" placeholder="Search..." />
+                <input
+                    type="text"
+                    id="search"
+                    list="search-suggestions"
+                    placeholder="Search..."
+                />
                 <button id="filtersButton" title="Filters">
                     <img src="img/filter.svg" alt="Filters" />
                 </button>
@@ -75,6 +80,7 @@
                     <img src="img/clear.svg" alt="Clear" />
                 </button>
             </div>
+            <datalist id="search-suggestions"></datalist>
             <div id="results"></div>
             <button id="addItemButton">
                 <img src="img/add.svg" alt="Add Item" />
@@ -95,7 +101,7 @@
                         type="url"
                         id="albumLink"
                         name="albumLink"
-                        placeholder="Spotify, Tidal, etc. URL (Spotify preferred for auto fetching data)"
+                        placeholder="Spotify, Apple Music, etc. URL (Spotify and Apple Music preferred for auto fetching data)"
                     />
                     <label for="imageUrl">Image URL:</label>
                     <input
@@ -348,6 +354,6 @@
             </div>
         </div>
     </body>
-    <script src="spotify.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="spotify.js"></script>
+    <script type="module" src="script.js"></script>
 </html>

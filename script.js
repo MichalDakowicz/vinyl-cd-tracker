@@ -1,3 +1,27 @@
+import { getAlbumImageFromSpotify } from "./spotify.js";
+import { getAlbumDataFromAppleMusic } from "./applemusic.js";
+
+function notifyUser(message, type = "error") {
+    const notification = document.createElement("div");
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.position = "fixed";
+    notification.style.top = "10px";
+    notification.style.right = "10px";
+    notification.style.background = type === "error" ? "#f44336" : "#4caf50";
+    notification.style.color = "#fff";
+    notification.style.padding = "10px 20px";
+    notification.style.borderRadius = "4px";
+    notification.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+    notification.style.zIndex = "10000";
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.opacity = "0";
+        setTimeout(() => notification.remove(), 1000);
+    }, 3000);
+}
+window.notifyUser = notifyUser;
+
 const darkModeToggle = document.querySelector("#dark-mode-toggle");
 const body = document.body;
 
@@ -344,13 +368,19 @@ async function updateImageFromSpotify() {
     const albumLink = document.querySelector("#albumLink").value;
 
     if (!imageUrl && albumLink && albumLink.includes("spotify.com")) {
-        const spotifyData = await getAlbumImageFromSpotify(albumLink);
-        if (spotifyData.imageUrl) {
-            document.querySelector("#imageUrl").value = spotifyData.imageUrl;
-            document.querySelector("#genres").value =
-                spotifyData.genres.join(", ");
-            updateFormPreview();
-            return spotifyData.imageUrl;
+        try {
+            const spotifyData = await getAlbumImageFromSpotify(albumLink);
+            if (spotifyData.imageUrl) {
+                document.querySelector("#imageUrl").value =
+                    spotifyData.imageUrl;
+                document.querySelector("#genres").value =
+                    spotifyData.genres.join(", ");
+                updateFormPreview();
+                return spotifyData.imageUrl;
+            }
+        } catch (err) {
+            console.error("Failed to update image from Spotify:", err);
+            notifyUser("Failed to fetch Spotify image.", "error");
         }
     }
     return imageUrl || "img/default.png";
@@ -417,34 +447,62 @@ document.querySelector("#imageUrl").addEventListener("input", async (e) => {
 
 document.querySelector("#albumLink").addEventListener("input", async (e) => {
     const link = e.target.value;
-    if (link && link.includes("spotify.com")) {
-        const spotifyData = await getAlbumImageFromSpotify(link);
-        if (spotifyData) {
-            if (!document.querySelector("#albumName").value)
-                document.querySelector("#albumName").value =
-                    spotifyData.albumName || "";
-
-            if (!document.querySelector("#albumArtists").value)
-                document.querySelector("#albumArtists").value =
-                    spotifyData.artists && spotifyData.artists.length > 0
-                        ? spotifyData.artists.join(" • ")
-                        : "";
-            if (!document.querySelector("#genres").value)
-                document.querySelector("#genres").value =
-                    spotifyData.genres || [];
-            if (!document.querySelector("#imageUrl").value)
-                document.querySelector("#imageUrl").value =
-                    spotifyData.imageUrl || "";
-            if (
-                !document.querySelector("#releaseYear").value &&
-                spotifyData.releaseDate
-            ) {
-                const parts = spotifyData.releaseDate.split("-");
-                document.querySelector("#releaseYear").value = parts[0] || "";
-                document.querySelector("#releaseMonth").value = parts[1] || "";
-                document.querySelector("#releaseDay").value = parts[2] || "";
+    if (
+        link &&
+        (link.includes("spotify.com") || link.includes("music.apple.com"))
+    ) {
+        try {
+            let albumData = null;
+            if (link.includes("spotify.com")) {
+                albumData = await getAlbumImageFromSpotify(link);
+            } else if (link.includes("music.apple.com")) {
+                albumData = await getAlbumDataFromAppleMusic(link);
             }
-            updateFormPreview();
+            if (albumData) {
+                if (!document.querySelector("#albumName").value)
+                    document.querySelector("#albumName").value =
+                        albumData.albumName || "";
+                if (albumData.artists) {
+                    document.querySelector("#albumArtists").value =
+                        albumData.artists.join(" • ");
+                    if (artistsTagInput) {
+                        artistsTagInput.clearTags();
+                        albumData.artists.forEach((artist) =>
+                            artistsTagInput.addTag(artist)
+                        );
+                    }
+                }
+                if (albumData.genres) {
+                    document.querySelector("#genres").value =
+                        albumData.genres.join(", ");
+                    if (genresTagInput) {
+                        genresTagInput.clearTags();
+                        albumData.genres.forEach((genre) =>
+                            genresTagInput.addTag(genre)
+                        );
+                    }
+                }
+                if (!document.querySelector("#imageUrl").value)
+                    document.querySelector("#imageUrl").value =
+                        albumData.imageUrl || "";
+                if (
+                    !document.querySelector("#releaseYear").value &&
+                    albumData.releaseDate
+                ) {
+                    const fullDate = albumData.releaseDate.substring(0, 10);
+                    const [year, month, day] = fullDate.split("-");
+                    document.querySelector("#releaseYear").value = year;
+                    document.querySelector("#releaseMonth").value = month;
+                    document.querySelector("#releaseDay").value = day;
+                }
+                updateFormPreview();
+            }
+        } catch (error) {
+            console.error("Error retrieving album details:", error);
+            notifyUser(
+                "Error retrieving album details. Please try again.",
+                "error"
+            );
         }
     } else {
         updateFormPreview();

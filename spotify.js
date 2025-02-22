@@ -33,7 +33,7 @@ async function getSpotifyToken() {
     return accessToken;
 }
 
-async function getAlbumImageFromSpotify(spotifyUrl) {
+export async function getAlbumImageFromSpotify(spotifyUrl) {
     try {
         console.log("🔍 Processing Spotify URL:", spotifyUrl);
         const albumId = spotifyUrl.match(/album[/:]([a-zA-Z0-9]+)/)?.[1];
@@ -96,6 +96,9 @@ async function getAlbumImageFromSpotify(spotifyUrl) {
         return result;
     } catch (error) {
         console.error("❌ Spotify API error:", error);
+        if (window.notifyUser) {
+            window.notifyUser("Spotify API error. Please try again.", "error");
+        }
         return {
             imageUrl: null,
             genres: [],
