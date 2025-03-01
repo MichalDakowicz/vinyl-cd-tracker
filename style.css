@@ -1222,23 +1222,24 @@ body.dark-mode #filterGenre option:hover {
     max-width: 800px !important;
     padding: 0 !important;
     overflow: hidden;
-    width: fit-content;
-    max-width: none !important;
+    width: 90vw;
     margin: auto;
 }
 
 .album-view-layout {
     display: flex;
     gap: 20px;
+    align-items: flex-start;
 }
 
 .album-cover {
     flex: 0 0 300px;
+    width: 300px;
     height: 300px;
 }
 
 .album-cover img {
-    width: 100%;
+    width: 300px;
     height: 300px;
     object-fit: cover;
     border-radius: 4px;
@@ -1246,27 +1247,37 @@ body.dark-mode #filterGenre option:hover {
 
 .album-details {
     flex: 1;
-    padding: 20px 0 20px 0;
+    padding: 20px 20px 20px 0;
+    min-width: 0; /* Important for text wrapping */
 }
 
 .album-title {
     font-size: 1.8rem;
     margin: 0 0 10px 0;
     color: var(--text-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
-.album-artist {
-    font-size: 1.2rem;
-    margin: 0 0 15px 0;
-    color: var(--text-color);
-    font-weight: 500;
-}
+@media (max-width: 600px) {
+    .album-view-layout {
+        flex-direction: column;
+    }
 
-.album-date {
-    font-size: 1rem;
-    margin: 0 0 10px 0;
-    color: var(--text-color);
-    opacity: 0.8;
+    .album-cover {
+        width: 100%;
+        height: auto;
+        flex: none;
+    }
+
+    .album-cover img {
+        width: 100%;
+        height: auto;
+    }
+
+    .album-details {
+        padding: 20px;
+    }
 }
 
 .album-genres {
@@ -1366,6 +1377,10 @@ body.dark-mode .album-genres span {
 }
 
 @media (max-width: 600px) {
+    .album-view-content {
+        max-width: 300px !important;
+    }
+
     .album-view-layout {
         flex-direction: column;
     }
@@ -1376,6 +1391,7 @@ body.dark-mode .album-genres span {
 
     .album-details {
         padding: 20px;
+        padding-top: 0;
     }
 }
 

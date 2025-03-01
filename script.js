@@ -33,9 +33,15 @@ function toggleDarkMode(event) {
     if (event.target.checked) {
         body.classList.add("dark-mode");
         localStorage.setItem("darkMode", "enabled");
+        document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute("content", "#333333");
     } else {
         body.classList.remove("dark-mode");
         localStorage.removeItem("darkMode");
+        document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute("content", "#ffffff");
     }
 }
 
@@ -43,6 +49,9 @@ const darkMode = localStorage.getItem("darkMode");
 if (darkMode === "enabled") {
     body.classList.add("dark-mode");
     darkModeToggle.checked = true;
+    document
+        .querySelector('meta[name="theme-color"]')
+        .setAttribute("content", "#333333");
 }
 
 function getIconPath(iconName) {
@@ -1448,40 +1457,4 @@ document.addEventListener("keydown", (event) => {
 
         itemToDelete = null;
     }
-});
-
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker
-            .register("./sw.js", { scope: "./" })
-            .then((registration) => {
-                console.log("ServiceWorker registration successful");
-            })
-            .catch((err) => {
-                console.log("ServiceWorker registration failed: ", err);
-            });
-    });
-}
-
-let deferredPrompt;
-window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const installButton = document.createElement("button");
-    installButton.textContent = "Install App";
-    installButton.classList.add("install-button");
-    installButton.style.display = "none";
-    document.body.appendChild(installButton);
-    installButton.style.display = "block";
-
-    installButton.addEventListener("click", (e) => {
-        installButton.style.display = "none";
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === "accepted") {
-                console.log("User accepted the install prompt");
-            }
-            deferredPrompt = null;
-        });
-    });
 });

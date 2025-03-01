@@ -12,7 +12,7 @@ export async function getAlbumDataFromAppleMusic(appleLink) {
                 imageUrl: album.artworkUrl100.replace("100x100", "600x600"),
                 genres: album.primaryGenreName ? [album.primaryGenreName] : [],
                 albumName: album.collectionName || null,
-                releaseDate: album.releaseDate || null, 
+                releaseDate: album.releaseDate || null,
                 artists: album.artistName ? [album.artistName] : [],
             };
         }
