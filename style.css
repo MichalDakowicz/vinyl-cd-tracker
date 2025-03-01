@@ -162,8 +162,14 @@ body.dark-mode select {
 }
 
 @media screen and (max-width: 600px) {
+    body {
+        padding: 0;
+        margin: 0;
+    }
     .container {
-        padding: 10px;
+        width: calc(100% - 40px);
+        border-radius: 0;
+        border: none;
     }
     textarea {
         height: 200px;
