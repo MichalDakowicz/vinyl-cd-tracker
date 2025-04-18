@@ -116,6 +116,9 @@ darkModeToggle.addEventListener("change", (event) => {
     toggleDarkMode(event);
     renderItems(items);
     updateAddItemButtonIcon();
+    if (reorderModal.classList.contains("show")) {
+        updateReorderIcons();
+    }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1456,5 +1459,155 @@ document.addEventListener("keydown", (event) => {
         }
 
         itemToDelete = null;
+    }
+});
+
+const reorderModal = document.querySelector("#reorderModal");
+const reorderButton = document.querySelector("#reorderButton");
+const reorderListContainer = document.querySelector("#reorderList");
+const saveReorderButton = document.querySelector("#saveReorder");
+const cancelReorderButton = document.querySelector("#cancelReorder");
+
+function populateReorderModal() {
+    reorderListContainer.innerHTML = "";
+    items.forEach((item, index) => {
+        const listItem = document.createElement("div");
+        listItem.classList.add("reorder-item");
+        listItem.dataset.id = item.id;
+
+        const upIcon = getIconPath("up");
+        const downIcon = getIconPath("down");
+
+        listItem.innerHTML = `
+            <img src="${
+                item.imageUrl || "img/default.png"
+            }" alt="Cover" class="reorder-item-img" onerror="this.src='img/default.png'">
+            <div class="reorder-item-info">
+                <span class="reorder-item-title">${
+                    item.albumName || "Untitled"
+                }</span>
+                <span class="reorder-item-artist">${
+                    Array.isArray(item.albumArtists)
+                        ? item.albumArtists.join(" • ")
+                        : item.albumArtists || "Unknown Artist"
+                }</span>
+            </div>
+            <div class="reorder-item-controls">
+                <button class="reorder-up" title="Move Up" ${
+                    index === 0 ? "disabled" : ""
+                }><img src="${upIcon}" alt="Up"></button>
+                <button class="reorder-down" title="Move Down" ${
+                    index === items.length - 1 ? "disabled" : ""
+                }><img src="${downIcon}" alt="Down"></button>
+            </div>
+        `;
+        reorderListContainer.appendChild(listItem);
+    });
+    updateReorderIcons();
+}
+
+function updateReorderIcons() {
+    const upIcon = getIconPath("up");
+    const downIcon = getIconPath("down");
+    reorderListContainer
+        .querySelectorAll(".reorder-up img")
+        .forEach((img) => (img.src = upIcon));
+    reorderListContainer
+        .querySelectorAll(".reorder-down img")
+        .forEach((img) => (img.src = downIcon));
+}
+
+function updateReorderButtonStates() {
+    const itemsInList = reorderListContainer.querySelectorAll(".reorder-item");
+    itemsInList.forEach((item, index) => {
+        item.querySelector(".reorder-up").disabled = index === 0;
+        item.querySelector(".reorder-down").disabled =
+            index === itemsInList.length - 1;
+    });
+}
+
+reorderButton.addEventListener("click", () => {
+    populateReorderModal();
+    reorderModal.classList.add("show");
+});
+
+reorderListContainer.addEventListener("click", (e) => {
+    const targetButton = e.target.closest("button");
+    if (!targetButton) return;
+
+    const item = targetButton.closest(".reorder-item");
+    if (!item) return;
+
+    if (targetButton.classList.contains("reorder-up")) {
+        const previousItem = item.previousElementSibling;
+        if (previousItem) {
+            reorderListContainer.insertBefore(item, previousItem);
+            updateReorderButtonStates();
+        }
+    } else if (targetButton.classList.contains("reorder-down")) {
+        const nextItem = item.nextElementSibling;
+        if (nextItem) {
+            reorderListContainer.insertBefore(nextItem, item);
+            updateReorderButtonStates();
+        }
+    }
+});
+
+saveReorderButton.addEventListener("click", () => {
+    const reorderedItemElements =
+        reorderListContainer.querySelectorAll(".reorder-item");
+    const newOrderIds = Array.from(reorderedItemElements).map((el) =>
+        Number(el.dataset.id)
+    );
+
+    const newItemsOrder = newOrderIds
+        .map((id) => items.find((item) => item.id === id))
+        .filter((item) => item);
+
+    const currentOrderIds = items.map((i) => i.id);
+    if (JSON.stringify(currentOrderIds) !== JSON.stringify(newOrderIds)) {
+        items.length = 0;
+        items.push(...newItemsOrder);
+        saveItemsToLocalStorage(items);
+        console.log("New custom order saved via modal.");
+        if (sortBy.value !== "custom") {
+        }
+        renderItems(applyFilters(items));
+    } else {
+        console.log("Order unchanged in modal.");
+    }
+
+    reorderModal.classList.remove("show");
+});
+
+cancelReorderButton.addEventListener("click", () => {
+    reorderModal.classList.remove("show");
+});
+
+reorderModal.querySelector(".close").addEventListener("click", () => {
+    reorderModal.classList.remove("show");
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        document.querySelectorAll(".modal.show").forEach((modal) => {
+            modal.classList.remove("show");
+        });
+
+        const filtersPopup = document.querySelector("#filtersPopup");
+        if (filtersPopup && filtersPopup.classList.contains("show")) {
+            filtersPopup.classList.remove("show");
+        }
+
+        itemToDelete = null;
+    }
+});
+
+window.addEventListener("click", (event) => {
+    if (event.target.classList.contains("modal")) {
+        event.target.classList.remove("show");
+        if (event.target === deleteConfirmModal) {
+            itemToDelete = null;
+        }
     }
 });

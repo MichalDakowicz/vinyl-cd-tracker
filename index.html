@@ -33,6 +33,9 @@
                     <button id="viewModeButton" title="Toggle View">
                         <img src="img/grid.svg" alt="Toggle View" />
                     </button>
+                    <button id="reorderButton" title="Reorder Items (List)">
+                        <img src="img/reorder.svg" alt="Reorder" />
+                    </button>
                     <button id="exportButton" title="Export Data">
                         <img src="img/export.svg" alt="Export" />
                     </button>
@@ -365,6 +368,23 @@
                         <div class="stat-value" id="mostCommonArtist">-</div>
                         <div class="stat-label">Most Common Artist</div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="reorderModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Reorder Items</h2>
+                <p>
+                    Use the arrows to change the order. This affects the 'Custom
+                    Order' sort.
+                </p>
+                <div id="reorderList" class="reorder-list-container">
+                </div>
+                <div class="modal-actions">
+                    <button id="saveReorder">Save Order</button>
+                    <button id="cancelReorder" class="cancel">Cancel</button>
                 </div>
             </div>
         </div>
