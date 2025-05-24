@@ -99,15 +99,24 @@
                 </button>
             </div>
             <datalist id="search-suggestions"></datalist>
-            <div id="results"></div>
-            <button id="addItemButton">
-                <img src="img/add.svg" alt="Add Item" />
-            </button>
+            <div id="appContent" style="display: none">
+                <div id="results"></div>
+                <button id="addItemButton">
+                    <img src="img/add.svg" alt="Add Item" />
+                </button>
+            </div>
         </div>
-
-        <div id="darkMode">
-            <input type="checkbox" id="dark-mode-toggle" />
-            <b>Dark Mode</b>
+        <div id="loginContainer">
+            <p>Please log in to manage your collection.</p>
+            <button id="loginButton">Login with Google</button>
+        </div>
+        <div id="bottomControls">
+            <div id="userAuthStatus" class="user-auth-status">
+            </div>
+            <div id="darkMode">
+                <input type="checkbox" id="dark-mode-toggle" />
+                <label for="dark-mode-toggle">Dark Mode</label>
+            </div>
         </div>
 
         <div id="addItemModal" class="modal">
@@ -380,8 +389,7 @@
                     Use the arrows to change the order. This affects the 'Custom
                     Order' sort.
                 </p>
-                <div id="reorderList" class="reorder-list-container">
-                </div>
+                <div id="reorderList" class="reorder-list-container"></div>
                 <div class="modal-actions">
                     <button id="saveReorder">Save Order</button>
                     <button id="cancelReorder" class="cancel">Cancel</button>
@@ -389,6 +397,10 @@
             </div>
         </div>
     </body>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module" src="firebase-config.js"></script>
     <script type="module" src="spotify.js"></script>
     <script type="module" src="script.js"></script>
 </html>

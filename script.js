@@ -1,5 +1,21 @@
 import { getAlbumImageFromSpotify } from "./spotify.js";
 import { getAlbumDataFromAppleMusic } from "./applemusic.js";
+import {
+    database,
+    auth,
+    provider,
+    signInWithPopup,
+    onAuthStateChanged,
+    signOut,
+} from "./firebase-config.js";
+import {
+    ref,
+    set,
+    get,
+    child,
+    remove,
+    update,
+} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
 function notifyUser(message, type = "error") {
     const notification = document.createElement("div");
@@ -131,6 +147,14 @@ const closeModalButton = document.querySelector(".close");
 const addItemForm = document.querySelector("#addItemForm");
 let artistsTagInput;
 let genresTagInput;
+const formPreviewCard = document.querySelector("#formPreviewCard");
+
+const loginButton = document.querySelector("#loginButton");
+const userAuthStatus = document.querySelector("#userAuthStatus");
+const appContent = document.querySelector("#appContent");
+const loginContainer = document.querySelector("#loginContainer");
+
+let currentUserId = null; 
 
 addItemButton.addEventListener("click", () => {
     modal.classList.add("show");
@@ -162,44 +186,57 @@ window.addEventListener("click", (event) => {
     }
 });
 
-function saveItemsToLocalStorage(items) {
-    localStorage.setItem("items", JSON.stringify(items));
-}
-
-function loadItemsFromLocalStorage() {
+async function saveItemsToFirebase(itemsToSave) {
+    if (!currentUserId) {
+        notifyUser("You must be logged in to save items.", "error");
+        console.warn("Attempted to save items without a logged-in user.");
+        return;
+    }
     try {
-        const storedItems = localStorage.getItem("items");
-        if (!storedItems) return [];
-
-        const parsedItems = JSON.parse(storedItems);
-        if (!Array.isArray(parsedItems)) return [];
-
-        let needsUpdate = false;
-        const validItems = parsedItems
-            .filter((item) => item && typeof item === "object")
-            .map((item) => {
-                if (!item.id) {
-                    needsUpdate = true;
-                    return {
-                        ...item,
-                        id: Date.now() + Math.random(),
-                    };
-                }
-                return item;
-            });
-
-        if (needsUpdate) {
-            localStorage.setItem("items", JSON.stringify(validItems));
-        }
-
-        return validItems;
+        await set(ref(database, `users/${currentUserId}/items`), itemsToSave);
     } catch (error) {
-        console.error("Error loading items:", error);
-        return [];
+        console.error("Error saving items to Firebase:", error);
+        notifyUser("Failed to save items to cloud.", "error");
     }
 }
 
-const items = loadItemsFromLocalStorage();
+async function loadItemsFromFirebase() {
+    if (!currentUserId) {
+        return [];
+    }
+    try {
+        const snapshot = await get(
+            child(ref(database), `users/${currentUserId}/items`)
+        );
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            return Array.isArray(data) ? data : Object.values(data || {});
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error("Error loading items from Firebase:", error);
+        notifyUser(
+            "Failed to load items from cloud. Check console for details.",
+            "error"
+        );
+        return []; 
+    }
+}
+
+function saveItemsToLocalStorage(itemsToSave) {
+    console.warn(
+        "LocalStorage backup is not user-specific in the current multi-user setup."
+    );
+}
+function loadItemsFromLocalStorage() {
+    console.warn(
+        "LocalStorage fallback is not user-specific in the current multi-user setup."
+    );
+    return [];
+}
+
+let items = []; 
 
 function formatDate(dateString) {
     if (!dateString) return "";
@@ -362,169 +399,25 @@ searchInput.addEventListener("keypress", (e) => {
     }
 });
 
-function refreshItems() {
-    saveItemsToLocalStorage(items);
-    searchItems(searchInput.value);
-    updateStats();
-}
-
-renderItems(items);
-
-let isEditing = false;
-let editingIndex = null;
-
-const formPreviewCard = document.querySelector("#formPreviewCard");
-
-async function updateImageFromSpotify() {
-    const imageUrl = document.querySelector("#imageUrl").value;
-    const albumLink = document.querySelector("#albumLink").value;
-
-    if (!imageUrl && albumLink && albumLink.includes("spotify.com")) {
-        try {
-            const spotifyData = await getAlbumImageFromSpotify(albumLink);
-            if (spotifyData.imageUrl) {
-                document.querySelector("#imageUrl").value =
-                    spotifyData.imageUrl;
-                document.querySelector("#genres").value =
-                    spotifyData.genres.join(", ");
-                updateFormPreview();
-                return spotifyData.imageUrl;
-            }
-        } catch (err) {
-            console.error("Failed to update image from Spotify:", err);
-            notifyUser("Failed to fetch Spotify image.", "error");
-        }
+async function refreshItems() {
+    if (!currentUserId) {
+        console.log("No user logged in, clearing items.");
+        items = [];
+        renderItems(items);
+        return;
     }
-    return imageUrl || "img/default.png";
+    items = await loadItemsFromFirebase();
+    renderItems(items);
 }
-
-function updateFormPreview() {
-    const imageUrl = document.querySelector("#imageUrl").value;
-    const albumName = document.querySelector("#albumName").value;
-    const albumArtists = document.querySelector("#albumArtists").value;
-    const genres = document.querySelector("#genres").value;
-
-    const year = document.querySelector("#releaseYear").value.padStart(4, "0");
-    const month =
-        document.querySelector("#releaseMonth").value.padStart(2, "0") || "01";
-    const day =
-        document.querySelector("#releaseDay").value.padStart(2, "0") || "01";
-    const releaseDate = `${year}-${month}-${day}`;
-
-    const types = {
-        vinyl: document.querySelector("#vinylCheck").checked,
-        cd: document.querySelector("#cdCheck").checked,
-    };
-
-    const typesBadges = Object.entries(types)
-        .filter(([_, checked]) => checked)
-        .map(
-            ([type]) => `<span class="type-badge">${type.toUpperCase()}</span>`
-        )
-        .join("");
-
-    formPreviewCard.innerHTML = `
-        <div class="preview-image-container">
-            <img src="${
-                imageUrl || "img/default.png"
-            }" alt="Album Image" onerror="this.src='img/default.png'">
-            <div class="type-badges">${typesBadges}</div>
-        </div>
-        <div class="album-info">
-            <h3>${albumName}</h3>
-            <p>${albumArtists}</p>
-            <p>${formatDate(releaseDate)}</p>
-            ${genres ? `<p class="genres">${genres}</p>` : ""}
-        </div>
-    `;
-}
-
-document
-    .querySelectorAll(
-        "#imageUrl, #albumName, #albumArtists, #releaseYear, #releaseMonth, #releaseDay, #vinylCheck, #cdCheck"
-    )
-    .forEach((input) => {
-        input.addEventListener("input", updateFormPreview);
-        if (input.type === "checkbox") {
-            input.addEventListener("change", updateFormPreview);
-        }
-    });
-
-document.querySelector("#imageUrl").addEventListener("input", async (e) => {
-    if (!e.target.value) {
-        await updateImageFromSpotify();
-    }
-    updateFormPreview();
-});
-
-document.querySelector("#albumLink").addEventListener("input", async (e) => {
-    const link = e.target.value;
-    if (
-        link &&
-        (link.includes("spotify.com") || link.includes("music.apple.com"))
-    ) {
-        try {
-            let albumData = null;
-            if (link.includes("spotify.com")) {
-                albumData = await getAlbumImageFromSpotify(link);
-            } else if (link.includes("music.apple.com")) {
-                albumData = await getAlbumDataFromAppleMusic(link);
-            }
-            if (albumData) {
-                if (!document.querySelector("#albumName").value)
-                    document.querySelector("#albumName").value =
-                        albumData.albumName || "";
-                if (albumData.artists) {
-                    document.querySelector("#albumArtists").value =
-                        albumData.artists.join(" • ");
-                    if (artistsTagInput) {
-                        artistsTagInput.clearTags();
-                        albumData.artists.forEach((artist) =>
-                            artistsTagInput.addTag(artist)
-                        );
-                    }
-                }
-                if (albumData.genres) {
-                    document.querySelector("#genres").value =
-                        albumData.genres.join(", ");
-                    if (genresTagInput) {
-                        genresTagInput.clearTags();
-                        albumData.genres.forEach((genre) =>
-                            genresTagInput.addTag(genre)
-                        );
-                    }
-                }
-                if (!document.querySelector("#imageUrl").value)
-                    document.querySelector("#imageUrl").value =
-                        albumData.imageUrl || "";
-                if (
-                    !document.querySelector("#releaseYear").value &&
-                    albumData.releaseDate
-                ) {
-                    const fullDate = albumData.releaseDate.substring(0, 10);
-                    const [year, month, day] = fullDate.split("-");
-                    document.querySelector("#releaseYear").value = year;
-                    document.querySelector("#releaseMonth").value = month;
-                    document.querySelector("#releaseDay").value = day;
-                }
-                updateFormPreview();
-            }
-        } catch (error) {
-            console.error("Error retrieving album details:", error);
-            notifyUser(
-                "Error retrieving album details. Please try again.",
-                "error"
-            );
-        }
-    } else {
-        updateFormPreview();
-    }
-});
 
 let currentEditingId = null;
 
 async function addItemFormSubmitHandler(event) {
     event.preventDefault();
+    if (!currentUserId) {
+        notifyUser("You must be logged in to add items.", "error");
+        return;
+    }
     const imageUrl = document.querySelector("#imageUrl").value;
     const albumLink = document.querySelector("#albumLink").value;
 
@@ -566,41 +459,64 @@ async function addItemFormSubmitHandler(event) {
         cd: document.querySelector("#cdCheck").checked,
     };
 
-    const itemData = {
+    const newItem = {
+        id: currentEditingId || Date.now().toString(),
+        title: albumName,
+        artists: artists,
+        year: year,
+        month: month,
+        day: day,
+        wanted: wanted,
+        types: types,
         imageUrl: finalImageUrl,
-        albumName,
-        albumArtists: artists,
-        genres: genres,
-        releaseDate,
-        wanted,
-        types,
         albumLink: albumLink || null,
     };
 
-    if (isEditing && currentEditingId) {
-        const index = items.findIndex((item) => item.id === currentEditingId);
-        if (index !== -1) {
-            items[index] = { ...items[index], ...itemData };
+    let success = false;
+    if (currentEditingId) {
+        const itemIndex = items.findIndex(
+            (item) => item.id === currentEditingId
+        );
+        if (itemIndex !== -1) {
+            items[itemIndex] = newItem;
+            success = true;
+        } else {
+            notifyUser("Error: Item not found for update.", "error");
+            return;
         }
     } else {
-        items.push({
-            id: Date.now(),
-            ...itemData,
-        });
+        items.push(newItem);
+        success = true;
     }
 
-    refreshItems();
-    modal.classList.remove("show");
-    addItemForm.reset();
-    formPreviewCard.innerHTML = "";
-
-    isEditing = false;
-    currentEditingId = null;
+    if (success) {
+        try {
+            await saveItemsToFirebase(items);
+            notifyUser(
+                currentEditingId
+                    ? "Item updated successfully!"
+                    : "Item added successfully!",
+                "success"
+            );
+            renderItems(items);
+            addItemForm.reset();
+            if (artistsTagInput) artistsTagInput.removeAllTags();
+            if (genresTagInput) genresTagInput.removeAllTags();
+            modal.classList.remove("show");
+            currentEditingId = null;
+            isEditing = false;
+            formPreviewCard.innerHTML = ""; 
+        } catch (error) {
+            console.error(
+                "Error saving item to Firebase after add/update:",
+                error
+            );
+            notifyUser("Failed to save item to cloud.", "error");
+        }
+    }
 }
 
-addItemForm.addEventListener("submit", (event) => {
-    addItemFormSubmitHandler(event).catch(console.error);
-});
+addItemForm.addEventListener("submit", addItemFormSubmitHandler);
 
 const deleteConfirmModal = document.querySelector("#deleteConfirmModal");
 const confirmDeleteBtn = document.querySelector("#confirmDelete");
@@ -636,16 +552,26 @@ function showDeleteConfirmation(item) {
     deleteConfirmModal.classList.add("show");
 }
 
-confirmDeleteBtn.addEventListener("click", () => {
-    if (itemToDelete) {
-        const index = items.findIndex((item) => item.id === itemToDelete.id);
-        if (index !== -1) {
-            items.splice(index, 1);
-            refreshItems();
+confirmDeleteBtn.addEventListener("click", async () => {
+    if (itemToDelete && itemToDelete.id) {
+        if (!currentUserId) {
+            notifyUser("You must be logged in to delete items.", "error");
+            return;
+        }
+        const originalItems = [...items];
+        items = items.filter((item) => item.id !== itemToDelete.id);
+        try {
+            await saveItemsToFirebase(items);
+            renderItems(items);
+            deleteConfirmModal.style.display = "none";
+            itemToDelete = null;
+            notifyUser("Item deleted successfully!", "success");
+        } catch (error) {
+            items = originalItems; 
+            console.error("Error deleting item from Firebase:", error);
+            notifyUser("Failed to delete item from cloud.", "error");
         }
     }
-    deleteConfirmModal.style.display = "none";
-    itemToDelete = null;
 });
 
 cancelDeleteBtn.addEventListener("click", () => {
@@ -654,89 +580,60 @@ cancelDeleteBtn.addEventListener("click", () => {
 });
 
 document.querySelector("#results").addEventListener("click", async (event) => {
-    const target = event.target.closest("button");
-    if (!target) return;
+    const editButton = event.target.closest(".edit-btn");
+    const deleteButton = event.target.closest(".delete-btn");
+    const card = event.target.closest(".card");
 
-    if (target.classList.contains("updateButton")) {
-        const itemId = Number(target.dataset.id);
-        const item = items.find((item) => item.id === itemId);
-        if (!item || !item.albumLink) return;
+    if (editButton && card && card.dataset.id) {
+        const itemId = card.dataset.id;
+        const itemToEdit = items.find((item) => item.id === itemId);
+        if (itemToEdit) {
+            document.querySelector("#imageUrl").value =
+                itemToEdit.imageUrl || "";
+            document.querySelector("#albumName").value = itemToEdit.title || "";
+            document.querySelector("#albumLink").value =
+                itemToEdit.albumLink || "";
+            document.querySelector("#wantedToggle").checked = Boolean(
+                itemToEdit.wanted
+            );
+            document.querySelector("#vinylCheck").checked = Boolean(
+                itemToEdit.types?.vinyl
+            );
+            document.querySelector("#cdCheck").checked = Boolean(
+                itemToEdit.types?.cd
+            );
 
-        target.disabled = true;
-        const originalImg = target.querySelector("img").src;
-        target.querySelector("img").src = getIconPath("loading");
+            const artistsInput = artistsTagInput;
+            const genresInput = genresTagInput;
 
-        try {
-            const spotifyData = await getAlbumImageFromSpotify(item.albumLink);
-            if (spotifyData) {
-                const updatedItem = {
-                    ...item,
-                    imageUrl: spotifyData.imageUrl || item.imageUrl,
-                    albumName: spotifyData.albumName || item.albumName,
-                    albumArtists: spotifyData.artists || item.albumArtists,
-                    genres: spotifyData.genres || item.genres,
-                    releaseDate: spotifyData.releaseDate || item.releaseDate,
-                };
+            artistsInput.clearTags();
+            genresInput.clearTags();
 
-                const index = items.findIndex((i) => i.id === itemId);
-                if (index !== -1) {
-                    items[index] = updatedItem;
-                    refreshItems();
-                }
+            if (Array.isArray(itemToEdit.albumArtists)) {
+                itemToEdit.albumArtists.forEach((artist) =>
+                    artistsInput.addTag(artist)
+                );
             }
-        } catch (error) {
-            console.error("Failed to update from Spotify:", error);
-        } finally {
-            target.disabled = false;
-            target.querySelector("img").src = getIconPath("refresh");
+
+            if (Array.isArray(itemToEdit.genres)) {
+                itemToEdit.genres.forEach((genre) => genresInput.addTag(genre));
+            }
+
+            if (itemToEdit.releaseDate) {
+                const [y, m, d] = itemToEdit.releaseDate.split("-");
+                document.querySelector("#releaseYear").value = y || "";
+                document.querySelector("#releaseMonth").value =
+                    parseInt(m) || "";
+                document.querySelector("#releaseDay").value = parseInt(d) || "";
+            }
+
+            modal.classList.add("show");
+            updateFormPreview();
+            document.querySelector("#albumName").focus();
         }
-        return;
-    }
-
-    if (target.classList.contains("editButton")) {
-        const itemId = Number(target.dataset.id);
-        const item = items.find((item) => item.id === itemId);
-        if (!item) return;
-
-        isEditing = true;
-        currentEditingId = itemId;
-
-        document.querySelector("#imageUrl").value = item.imageUrl || "";
-        document.querySelector("#albumName").value = item.albumName || "";
-        document.querySelector("#albumLink").value = item.albumLink || "";
-        document.querySelector("#wantedToggle").checked = Boolean(item.wanted);
-        document.querySelector("#vinylCheck").checked = Boolean(
-            item.types?.vinyl
-        );
-        document.querySelector("#cdCheck").checked = Boolean(item.types?.cd);
-
-        const artistsInput = artistsTagInput;
-        const genresInput = genresTagInput;
-
-        artistsInput.clearTags();
-        genresInput.clearTags();
-
-        if (Array.isArray(item.albumArtists)) {
-            item.albumArtists.forEach((artist) => artistsInput.addTag(artist));
-        }
-
-        if (Array.isArray(item.genres)) {
-            item.genres.forEach((genre) => genresInput.addTag(genre));
-        }
-
-        if (item.releaseDate) {
-            const [y, m, d] = item.releaseDate.split("-");
-            document.querySelector("#releaseYear").value = y || "";
-            document.querySelector("#releaseMonth").value = parseInt(m) || "";
-            document.querySelector("#releaseDay").value = parseInt(d) || "";
-        }
-
-        modal.classList.add("show");
-        updateFormPreview();
-        document.querySelector("#albumName").focus();
-    } else if (target.classList.contains("removeButton")) {
-        const itemId = Number(target.dataset.id);
-        const item = items.find((item) => item.id === itemId);
+    } else if (deleteButton && card) {
+        const itemId = card.dataset.id;
+        const item = items.find((it) => it.id === itemId);
         if (item) {
             showDeleteConfirmation(item);
         }
@@ -781,31 +678,76 @@ exportButton.addEventListener("click", () => {
 });
 
 importButton.addEventListener("click", () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
-
-    input.onchange = (e) => {
+    if (!currentUserId) {
+        notifyUser("You must be logged in to import items.", "error");
+        return;
+    }
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".json";
+    fileInput.onchange = async (e) => {
         const file = e.target.files[0];
-        const reader = new FileReader();
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importedFileItems = JSON.parse(event.target.result);
+                    if (Array.isArray(importedFileItems)) {
+                        const updatedItems = [...items];
+                        let itemsChanged = false;
 
-        reader.onload = (event) => {
-            try {
-                const importedItems = JSON.parse(event.target.result);
-                items.length = 0;
-                items.push(...importedItems);
-                refreshItems();
-            } catch (error) {
-                alert(
-                    "Error importing file. Please make sure it's a valid JSON file."
-                );
-            }
-        };
+                        for (const importedItem of importedFileItems) {
+                            const existingItemIndex = updatedItems.findIndex(
+                                (i) => i.id === importedItem.id
+                            );
+                            if (existingItemIndex !== -1) {
+                                updatedItems[existingItemIndex] = {
+                                    ...updatedItems[existingItemIndex],
+                                    ...importedItem,
+                                };
+                                itemsChanged = true;
+                            } else {
+                                const newItemWithId = {
+                                    ...importedItem,
+                                    id:
+                                        importedItem.id ||
+                                        Date.now().toString() +
+                                            Math.random()
+                                                .toString(36)
+                                                .substring(2),
+                                };
+                                updatedItems.push(newItemWithId);
+                                itemsChanged = true;
+                            }
+                        }
 
-        reader.readAsText(file);
+                        if (itemsChanged) {
+                            items = updatedItems;
+                            await saveItemsToFirebase(items);
+                            saveItemsToLocalStorage(items);
+                            renderItems(items);
+                            notifyUser(
+                                "Items imported successfully!",
+                                "success"
+                            );
+                        } else {
+                            notifyUser(
+                                "No new items to import or update.",
+                                "info"
+                            );
+                        }
+                    } else {
+                        notifyUser("Invalid file format.", "error");
+                    }
+                } catch (error) {
+                    notifyUser("Error reading file.", "error");
+                    console.error("Error importing items:", error);
+                }
+            };
+            reader.readAsText(file);
+        }
     };
-
-    input.click();
+    fileInput.click();
 });
 
 function toggleViewMode() {
@@ -878,736 +820,191 @@ function initDragAndDrop() {
 document.querySelector("#results").removeEventListener("dragend", saveNewOrder);
 
 function saveNewOrder() {
-    const cards = document.querySelectorAll(".card");
-    const newOrder = [];
-
-    cards.forEach((card) => {
-        const itemId = card.dataset.id;
-        const item = items.find((item) => item.id === Number(itemId));
+    if (!currentUserId) {
+        notifyUser("You must be logged in to reorder items.", "error");
+        return;
+    }
+    const orderedItems = [];
+    document.querySelectorAll("#results .card").forEach((cardEl, index) => {
+        const itemId = cardEl.dataset.id;
+        const item = items.find((i) => i.id === itemId);
         if (item) {
-            newOrder.push(item);
+            orderedItems.push({ ...item, order: index });
         }
     });
 
-    items.length = 0;
-    items.push(...newOrder);
+    orderedItems.sort((a, b) => a.order - b.order);
 
-    saveItemsToLocalStorage(items);
+    items = orderedItems.map(({ order, ...rest }) => rest);
+
+    saveItemsToFirebase(items);
 }
-
-const randomButton = document.querySelector("#randomButton");
-
-randomButton.addEventListener("click", () => {
-    const filteredItems = applyFilters(items);
-    const displayedCards = document.querySelectorAll(".card");
-    const availableCards = Array.from(displayedCards).filter((card) => {
-        if (card.classList.contains("wanted")) return false;
-        const itemId = Number(card.dataset.id);
-        return filteredItems.some((item) => item.id === itemId);
-    });
-
-    if (availableCards.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * availableCards.length);
-    const targetCard = availableCards[randomIndex];
-
-    document
-        .querySelectorAll(".highlight")
-        .forEach((card) => card.classList.remove("highlight"));
-
-    targetCard.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-    });
-
-    setTimeout(() => {
-        targetCard.classList.add("highlight");
-        setTimeout(() => targetCard.classList.remove("highlight"), 4000);
-    }, 500);
-});
 
 function setupDateInputs() {
-    const dayInput = document.querySelector("#releaseDay");
-    const monthInput = document.querySelector("#releaseMonth");
-    const yearInput = document.querySelector("#releaseYear");
-
-    function handleDateInput(input, nextInput, max) {
-        input.addEventListener("input", (e) => {
-            e.target.value = e.target.value.replace(/\D/g, "");
-            const value = e.target.value;
-
-            if (value.length === input.maxLength && nextInput && value <= max) {
-                nextInput.focus();
-            }
-        });
-
-        input.addEventListener("keydown", (e) => {
-            if (
-                e.key === "Backspace" &&
-                e.target.value === "" &&
-                input !== yearInput
-            ) {
-                input.previousElementSibling.previousElementSibling.focus();
-            }
-        });
-    }
-
-    handleDateInput(dayInput, monthInput, 31);
-    handleDateInput(monthInput, yearInput, 12);
-    handleDateInput(yearInput, null, 9999);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    setupDateInputs();
-    updateAddItemButtonIcon();
-});
-
-const filtersButton = document.querySelector("#filtersButton");
-const filtersPopup = document.querySelector("#filtersPopup");
-const filterVinyl = document.querySelector("#filterVinyl");
-const filterCD = document.querySelector("#filterCD");
-const filterArtist = document.querySelector("#filterArtist");
-const sortBy = document.querySelector("#sortBy");
-
-const filterGenre = document.querySelector("#filterGenre");
-
-function updateGenresList() {
-    const genresSet = new Set();
-    items.forEach((item) => {
-        if (Array.isArray(item.genres)) {
-            item.genres.forEach((genre) => {
-                if (genre) genresSet.add(genre);
-            });
-        }
-    });
-
-    const genres = Array.from(genresSet).sort();
-    filterGenre.innerHTML = `
-        <option value="">All Genres</option>
-        <option value="none">No Genre</option>
-    `;
-
-    genres.forEach((genre) => {
-        const opt = document.createElement("option");
-        opt.value = genre.toLowerCase();
-        opt.textContent = genre;
-        filterGenre.appendChild(opt);
-    });
-}
-
-function updateArtistsList() {
-    const artistSet = new Set();
-    items.forEach((item) => {
-        if (Array.isArray(item.albumArtists)) {
-            item.albumArtists.forEach((artist) => {
-                if (artist) artistSet.add(artist);
-            });
-        }
-    });
-
-    const artists = Array.from(artistSet).sort();
-    filterArtist.innerHTML = '<option value="">All Artists</option>';
-    artists.forEach((artist) => {
-        const opt = document.createElement("option");
-        opt.value = artist;
-        opt.textContent = artist;
-        filterArtist.appendChild(opt);
-    });
-
-    updateGenresList();
-}
-
-function applyFilters(itemsToFilter) {
-    let filteredItems = [...itemsToFilter];
-
-    if (filterVinyl.checked || filterCD.checked) {
-        filteredItems = filteredItems.filter((item) => {
-            if (filterVinyl.checked && filterCD.checked) {
-                return item.types?.vinyl && item.types?.cd;
-            }
-            return (
-                (filterVinyl.checked && item.types?.vinyl) ||
-                (filterCD.checked && item.types?.cd)
-            );
-        });
-    }
-
-    if (filterArtist.value) {
-        filteredItems = filteredItems.filter(
-            (item) =>
-                Array.isArray(item.albumArtists) &&
-                item.albumArtists.includes(filterArtist.value)
-        );
-    }
-
-    const selectedGenres = Array.from(filterGenre.selectedOptions)
-        .map((opt) => opt.value)
-        .filter((val) => val !== "");
-
-    if (selectedGenres.length) {
-        filteredItems = filteredItems.filter((item) => {
-            if (selectedGenres.includes("none")) {
-                return (
-                    !item.genres ||
-                    !Array.isArray(item.genres) ||
-                    item.genres.length === 0
-                );
-            }
-
-            if (!Array.isArray(item.genres) || item.genres.length === 0) {
-                return false;
-            }
-
-            return selectedGenres.some((selected) =>
-                item.genres
-                    .map((g) => g.toLowerCase())
-                    .includes(selected.toLowerCase())
-            );
-        });
-    }
-
-    if (sortBy.value !== "custom") {
-        filteredItems.sort((a, b) => {
-            switch (sortBy.value) {
-                case "name":
-                    return a.albumName.localeCompare(b.albumName);
-                case "artist":
-                    return a.albumArtists.localeCompare(b.albumArtists);
-                case "year":
-                    return a.releaseDate.localeCompare(b.releaseDate);
-                default:
-                    return 0;
-            }
-        });
-    }
-
-    return filteredItems;
-}
-
-filterGenre.addEventListener("change", () => {
-    searchItems(searchInput.value);
-});
-
-[filterVinyl, filterCD, filterArtist, filterGenre, sortBy].forEach((filter) => {
-    filter.addEventListener("change", () => {
-        searchItems(searchInput.value);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    const filtersButton = document.querySelector("#filtersButton");
-    const filtersPopup = document.querySelector("#filtersPopup");
-
-    filtersButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        console.log("Filters button clicked");
-        filtersPopup.classList.toggle("show");
-        updateArtistsList();
-    });
-
-    document.addEventListener("click", (e) => {
-        if (
-            !filtersPopup.contains(e.target) &&
-            !filtersButton.contains(e.target)
-        ) {
-            filtersPopup.classList.remove("show");
-        }
-    });
-});
-
-const albumViewModal = document.querySelector("#albumViewModal");
-const albumViewClose = albumViewModal.querySelector(".close");
-
-albumViewClose.addEventListener("click", () => {
-    albumViewModal.classList.remove("show");
-});
-
-document.querySelector("#results").addEventListener("click", (event) => {
-    const isActionButton = event.target.closest(".actions");
-    const isCardImage = event.target.closest(".card img:not(.actions img)");
-    const card = event.target.closest(".card");
-
-    if (isActionButton || isCardImage || !card) return;
-
-    const itemId = Number(card.dataset.id);
-    const item = items.find((item) => item.id === itemId);
-    if (!item) return;
-
-    const modal = document.querySelector("#albumViewModal");
-    modal.querySelector(".album-cover img").src =
-        item.imageUrl || "img/default.png";
-    modal.querySelector(".album-title").textContent = item.albumName;
-
-    const artistsDisplay = Array.isArray(item.albumArtists)
-        ? item.albumArtists.join(" • ")
-        : item.albumArtists;
-    modal.querySelector(".album-artist").textContent = artistsDisplay;
-
-    modal.querySelector(".album-date").textContent = formatDate(
-        item.releaseDate
+    console.log(
+        "setupDateInputs function called - ensure its body is correctly implemented."
     );
+    const releaseMonthInput = document.querySelector("#releaseMonth");
+    const releaseDayInput = document.querySelector("#releaseDay");
+    const releaseYearInput = document.querySelector("#releaseYear");
+}
 
-    const genresDisplay =
-        Array.isArray(item.genres) && item.genres.length > 0
-            ? item.genres.map((genre) => `<span>${genre}</span>`).join(" ")
-            : "No genres listed";
-    modal.querySelector(".album-genres").innerHTML = genresDisplay;
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUserId = user.uid;
+        console.log("User signed in:", currentUserId, user.displayName);
+        if (userAuthStatus) {
+            userAuthStatus.innerHTML = `<button id="logoutButton" class="auth-button icon-button" title="Logout ${
+                user.displayName || user.email
+            }"><img src="img/logout.svg" alt="Logout"></button>`;
+            userAuthStatus.style.display = "flex"; 
+            const logoutButton = document.getElementById("logoutButton");
+            if (logoutButton) {
+                logoutButton.addEventListener("click", async () => {
+                    try {
+                        await signOut(auth);
+                    } catch (error) {
+                        console.error("Logout failed:", error);
+                        notifyUser("Logout failed. Please try again.", "error");
+                    }
+                });
+            }
+        }
+        if (loginContainer) loginContainer.style.display = "none";
+        if (appContent) appContent.style.display = "block"; 
+        document.body.classList.remove("logged-out-view");
+        refreshItems(); 
+    } else {
+        currentUserId = null;
+        console.log("User signed out");
+        items = [];
+        renderItems(items); 
+        if (userAuthStatus) {
+            userAuthStatus.innerHTML = "";
+            userAuthStatus.style.display = "none";
+        }
+        if (loginContainer) {
+            loginContainer.style.display = "flex"; 
+            document.body.classList.add("logged-out-view");
+        }
+        if (appContent) {
+            appContent.style.display = "none"; 
+        }
+    }
+});
 
-    const badges = Object.entries(item.types || {})
+if (loginButton) {
+    loginButton.addEventListener("click", async () => {
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error("Login failed:", error);
+            if (error.code === "auth/popup-closed-by-user") {
+                notifyUser(
+                    "Login cancelled. Please try again if you wish to log in.",
+                    "info"
+                );
+            } else if (error.code === "auth/network-request-failed") {
+                notifyUser(
+                    "Login failed: Network error. Please check your connection.",
+                    "error"
+                );
+            } else {
+                notifyUser(`Login failed: ${error.message}`, "error");
+            }
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    console.log("DOM fully loaded and parsed");
+    if (appContent) appContent.style.display = "none";
+    if (userAuthStatus) userAuthStatus.style.display = "none";
+
+    setupDateInputs();
+});
+
+function updateFormPreview() {
+    if (!formPreviewCard) return;
+
+    const albumName =
+        document.querySelector("#albumName").value || "Album Title";
+    const albumArtistsRaw = artistsTagInput
+        ? artistsTagInput.value.map((tag) => tag.value).join(" • ")
+        : document.querySelector("#albumArtists")?.value || "Artist(s)";
+    const albumArtists = albumArtistsRaw || "Artist(s)";
+
+    const year = document.querySelector("#releaseYear").value || "YYYY";
+    const month = document.querySelector("#releaseMonth").value || "MM";
+    const day = document.querySelector("#releaseDay").value || "DD";
+    let releaseDateDisplay = "Release Date";
+    if (year !== "YYYY") {
+        releaseDateDisplay = year;
+        if (month !== "MM" && month !== "00" && month !== "01") {
+            const monthName = new Date(
+                2000,
+                parseInt(month) - 1,
+                1
+            ).toLocaleString("default", { month: "short" });
+            releaseDateDisplay = `${monthName} ${year}`;
+            if (day !== "DD" && day !== "00" && day !== "01") {
+                releaseDateDisplay = `${day} ${monthName} ${year}`;
+            }
+        }
+    }
+
+    const imageUrl =
+        document.querySelector("#imageUrl").value || "img/default.png";
+    const wanted = document.querySelector("#wantedToggle").checked;
+    const types = {
+        vinyl: document.querySelector("#vinylCheck").checked,
+        cd: document.querySelector("#cdCheck").checked,
+    };
+
+    const typesBadges = Object.entries(types)
         .filter(([_, checked]) => checked)
         .map(
             ([type]) => `<span class="type-badge">${type.toUpperCase()}</span>`
         )
         .join("");
-    modal.querySelector(".album-badges").innerHTML = badges;
 
-    const spotifyLink = modal.querySelector(".spotify-link");
-    if (item.albumLink) {
-        spotifyLink.href = item.albumLink;
-        spotifyLink.style.display = "inline-flex";
-    } else {
-        spotifyLink.style.display = "none";
-    }
-
-    modal.classList.add("show");
-});
-
-window.addEventListener("click", (event) => {
-    if (event.target === albumViewModal) {
-        albumViewModal.classList.remove("show");
-    }
-});
-
-const statsModal = document.querySelector("#statsModal");
-const statsButton = document.querySelector("#statsButton");
-
-function updateStats() {
-    const totalItems = items.length;
-
-    const vinylOwned = items.filter(
-        (item) => !item.wanted && item.types?.vinyl
-    ).length;
-    const vinylWanted = items.filter(
-        (item) => item.wanted && item.types?.vinyl
-    ).length;
-
-    const cdOwned = items.filter(
-        (item) => !item.wanted && item.types?.cd
-    ).length;
-    const cdWanted = items.filter(
-        (item) => item.wanted && item.types?.cd
-    ).length;
-
-    const wantedCount = items.filter((item) => item.wanted).length;
-
-    const ownedItems = items.filter((item) => !item.wanted).length;
-
-    const progressPercentage =
-        totalItems > 0 ? (ownedItems / totalItems) * 100 : 0;
-
-    document.querySelector(
-        "#libraryProgress"
-    ).style.width = `${progressPercentage}%`;
-    document.querySelector("#progressValue").textContent = `${Math.round(
-        progressPercentage
-    )}%`;
-
-    document.querySelector("#totalItems").textContent = totalItems;
-    document.querySelector("#ownedCount").textContent = ownedItems;
-    document.querySelector("#vinylOwnedCount").textContent = vinylOwned;
-    document.querySelector("#vinylWantedCount").textContent = vinylWanted;
-    document.querySelector("#cdOwnedCount").textContent = cdOwned;
-    document.querySelector("#cdWantedCount").textContent = cdWanted;
-    document.querySelector("#wantedCount").textContent = wantedCount;
-
-    const uniqueArtists = new Set(
-        items.flatMap((item) =>
-            Array.isArray(item.albumArtists) ? item.albumArtists : []
-        )
-    );
-    const uniqueGenres = new Set(
-        items.flatMap((item) => (Array.isArray(item.genres) ? item.genres : []))
-    );
-
-    document.querySelector("#totalArtists").textContent = uniqueArtists.size;
-    document.querySelector("#totalGenres").textContent = uniqueGenres.size;
-
-    const years = items
-        .map((item) => parseInt(item.releaseDate?.split("-")[0]))
-        .filter((year) => !isNaN(year));
-
-    const oldestYear = Math.min(...years);
-    const newestYear = Math.max(...years);
-    const yearsSpan = years.length ? newestYear - oldestYear + 1 : 0;
-
-    const yearFrequency = years.reduce((acc, year) => {
-        acc[year] = (acc[year] || 0) + 1;
-        return acc;
-    }, {});
-
-    const mostCommonYear =
-        Object.entries(yearFrequency).sort(([, a], [, b]) => b - a)[0]?.[0] ||
-        "-";
-
-    const artistFrequency = items.reduce((acc, item) => {
-        if (Array.isArray(item.albumArtists)) {
-            item.albumArtists.forEach((artist) => {
-                acc[artist] = (acc[artist] || 0) + 1;
-            });
-        }
-        return acc;
-    }, {});
-
-    const mostCommonArtist =
-        Object.entries(artistFrequency).sort(([, a], [, b]) => b - a)[0]?.[0] ||
-        "-";
-
-    document.querySelector("#totalYears").textContent = yearsSpan || "-";
-    document.querySelector("#oldestYear").textContent = years.length
-        ? oldestYear
-        : "-";
-    document.querySelector("#newestYear").textContent = years.length
-        ? newestYear
-        : "-";
-    document.querySelector("#mostCommonYear").textContent = mostCommonYear;
-    document.querySelector("#mostCommonArtist").textContent = mostCommonArtist;
-}
-
-function initializeTagInput(containerId, inputId, placeholder) {
-    const container = document.createElement("div");
-    container.className = "tag-input-container";
-
-    const row = document.createElement("div");
-    row.className = "tag-input-row";
-
-    const input = document.createElement("input");
-    input.type = "text";
-    input.className = "tag-input";
-    input.placeholder = placeholder;
-    input.setAttribute("list", `${inputId}-datalist`);
-
-    const datalist = document.createElement("datalist");
-    datalist.id = `${inputId}-datalist`;
-    document.body.appendChild(datalist);
-
-    const addButton = document.createElement("button");
-    addButton.className = "add-tag-button";
-    addButton.textContent = "+";
-
-    const hiddenInput = document.querySelector(`#${inputId}`);
-    const tags = new Set();
-
-    function updateSuggestions() {
-        const suggestions = new Set();
-        items.forEach((item) => {
-            if (
-                inputId === "albumArtists" &&
-                Array.isArray(item.albumArtists)
-            ) {
-                item.albumArtists.forEach((artist) => suggestions.add(artist));
-            } else if (inputId === "genres" && Array.isArray(item.genres)) {
-                item.genres.forEach((genre) => suggestions.add(genre));
-            }
-        });
-
-        datalist.innerHTML = "";
-
-        suggestions.forEach((value) => {
-            const option = document.createElement("option");
-            option.value = value;
-            datalist.appendChild(option);
-        });
-    }
-
-    function updateHiddenInput() {
-        hiddenInput.value = Array.from(tags).join(" • ");
-        updateFormPreview();
-    }
-
-    function addTag(value) {
-        if (!value.trim()) return;
-
-        tags.add(value.trim());
-        updateHiddenInput();
-        renderTags();
-        input.value = "";
-    }
-
-    function removeTag(value) {
-        tags.delete(value);
-        updateHiddenInput();
-        renderTags();
-    }
-
-    function renderTags() {
-        while (container.firstChild) {
-            if (container.firstChild === row) break;
-            container.removeChild(container.firstChild);
-        }
-
-        Array.from(tags).forEach((tag) => {
-            const tagElement = document.createElement("div");
-            tagElement.className = "tag";
-            tagElement.textContent = tag;
-
-            const removeButton = document.createElement("button");
-            removeButton.className = "tag-remove";
-            removeButton.textContent = "×";
-            removeButton.onclick = () => removeTag(tag);
-
-            tagElement.appendChild(removeButton);
-            container.insertBefore(tagElement, row);
-        });
-    }
-
-    addButton.onclick = (e) => {
-        e.preventDefault();
-        addTag(input.value);
-    };
-
-    input.onkeydown = (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            addTag(input.value);
-        }
-        if (e.key === "Backspace" && input.value === "" && tags.size > 0) {
-            const lastTag = Array.from(tags).pop();
-            removeTag(lastTag);
-        }
-    };
-
-    if (hiddenInput.value) {
-        hiddenInput.value.split(" • ").forEach((tag) => tags.add(tag.trim()));
-        renderTags();
-    }
-
-    row.appendChild(input);
-    row.appendChild(addButton);
-    container.appendChild(row);
-
-    hiddenInput.style.display = "none";
-    hiddenInput.parentNode.insertBefore(container, hiddenInput);
-
-    updateSuggestions();
-
-    return {
-        container,
-        updateSuggestions,
-        addTag,
-        clearTags: () => {
-            tags.clear();
-            updateHiddenInput();
-            renderTags();
-        },
-    };
-}
-
-document.querySelectorAll(".modal").forEach((modal) => {
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.classList.remove("show");
-        }
-    });
-});
-
-statsButton.addEventListener("click", () => {
-    updateStats();
-    statsModal.classList.add("show");
-});
-
-statsModal.querySelector(".close").addEventListener("click", () => {
-    statsModal.classList.remove("show");
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    setupDateInputs();
-    updateAddItemButtonIcon();
-    updateStats();
-    artistsTagInput = initializeTagInput(
-        "artistsContainer",
-        "albumArtists",
-        "Add artist..."
-    );
-    genresTagInput = initializeTagInput(
-        "genresContainer",
-        "genres",
-        "Add genre..."
-    );
-
-    artistsTagInput.updateSuggestions();
-    genresTagInput.updateSuggestions();
-});
-
-document.querySelectorAll(".modal").forEach((modal) => {
-    const closeBtn = modal.querySelector(".close");
-    if (closeBtn) {
-        closeBtn.addEventListener("click", () => {
-            modal.classList.remove("show");
-        });
-    }
-});
-
-document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-        document.querySelectorAll(".modal").forEach((modal) => {
-            modal.classList.remove("show");
-        });
-
-        const filtersPopup = document.querySelector("#filtersPopup");
-        if (filtersPopup) {
-            filtersPopup.classList.remove("show");
-        }
-
-        itemToDelete = null;
-    }
-});
-
-const reorderModal = document.querySelector("#reorderModal");
-const reorderButton = document.querySelector("#reorderButton");
-const reorderListContainer = document.querySelector("#reorderList");
-const saveReorderButton = document.querySelector("#saveReorder");
-const cancelReorderButton = document.querySelector("#cancelReorder");
-
-function populateReorderModal() {
-    reorderListContainer.innerHTML = "";
-    items.forEach((item, index) => {
-        const listItem = document.createElement("div");
-        listItem.classList.add("reorder-item");
-        listItem.dataset.id = item.id;
-
-        const upIcon = getIconPath("up");
-        const downIcon = getIconPath("down");
-
-        listItem.innerHTML = `
-            <img src="${
-                item.imageUrl || "img/default.png"
-            }" alt="Cover" class="reorder-item-img" onerror="this.src='img/default.png'">
-            <div class="reorder-item-info">
-                <span class="reorder-item-title">${
-                    item.albumName || "Untitled"
-                }</span>
-                <span class="reorder-item-artist">${
-                    Array.isArray(item.albumArtists)
-                        ? item.albumArtists.join(" • ")
-                        : item.albumArtists || "Unknown Artist"
-                }</span>
+    formPreviewCard.innerHTML = `
+        <div class="card ${wanted ? "wanted-preview" : ""}">
+            <img src="${imageUrl}" alt="Preview Image" onerror="this.src='img/default.png'">
+            <div class="album-info">
+                <h3>${albumName}</h3>
+                <p>${albumArtists}</p>
+                <p>${releaseDateDisplay}</p>
+                <div class="type-badges">${typesBadges}</div>
             </div>
-            <div class="reorder-item-controls">
-                <button class="reorder-up" title="Move Up" ${
-                    index === 0 ? "disabled" : ""
-                }><img src="${upIcon}" alt="Up"></button>
-                <button class="reorder-down" title="Move Down" ${
-                    index === items.length - 1 ? "disabled" : ""
-                }><img src="${downIcon}" alt="Down"></button>
-            </div>
-        `;
-        reorderListContainer.appendChild(listItem);
-    });
-    updateReorderIcons();
+        </div>
+    `;
 }
 
-function updateReorderIcons() {
-    const upIcon = getIconPath("up");
-    const downIcon = getIconPath("down");
-    reorderListContainer
-        .querySelectorAll(".reorder-up img")
-        .forEach((img) => (img.src = upIcon));
-    reorderListContainer
-        .querySelectorAll(".reorder-down img")
-        .forEach((img) => (img.src = downIcon));
-}
-
-function updateReorderButtonStates() {
-    const itemsInList = reorderListContainer.querySelectorAll(".reorder-item");
-    itemsInList.forEach((item, index) => {
-        item.querySelector(".reorder-up").disabled = index === 0;
-        item.querySelector(".reorder-down").disabled =
-            index === itemsInList.length - 1;
-    });
-}
-
-reorderButton.addEventListener("click", () => {
-    populateReorderModal();
-    reorderModal.classList.add("show");
-});
-
-reorderListContainer.addEventListener("click", (e) => {
-    const targetButton = e.target.closest("button");
-    if (!targetButton) return;
-
-    const item = targetButton.closest(".reorder-item");
-    if (!item) return;
-
-    if (targetButton.classList.contains("reorder-up")) {
-        const previousItem = item.previousElementSibling;
-        if (previousItem) {
-            reorderListContainer.insertBefore(item, previousItem);
-            updateReorderButtonStates();
-        }
-    } else if (targetButton.classList.contains("reorder-down")) {
-        const nextItem = item.nextElementSibling;
-        if (nextItem) {
-            reorderListContainer.insertBefore(nextItem, item);
-            updateReorderButtonStates();
-        }
-    }
-});
-
-saveReorderButton.addEventListener("click", () => {
-    const reorderedItemElements =
-        reorderListContainer.querySelectorAll(".reorder-item");
-    const newOrderIds = Array.from(reorderedItemElements).map((el) =>
-        Number(el.dataset.id)
-    );
-
-    const newItemsOrder = newOrderIds
-        .map((id) => items.find((item) => item.id === id))
-        .filter((item) => item);
-
-    const currentOrderIds = items.map((i) => i.id);
-    if (JSON.stringify(currentOrderIds) !== JSON.stringify(newOrderIds)) {
-        items.length = 0;
-        items.push(...newItemsOrder);
-        saveItemsToLocalStorage(items);
-        console.log("New custom order saved via modal.");
-        if (sortBy.value !== "custom") {
-        }
-        renderItems(applyFilters(items));
-    } else {
-        console.log("Order unchanged in modal.");
-    }
-
-    reorderModal.classList.remove("show");
-});
-
-cancelReorderButton.addEventListener("click", () => {
-    reorderModal.classList.remove("show");
-});
-
-reorderModal.querySelector(".close").addEventListener("click", () => {
-    reorderModal.classList.remove("show");
-});
-
-document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-        document.querySelectorAll(".modal.show").forEach((modal) => {
-            modal.classList.remove("show");
-        });
-
-        const filtersPopup = document.querySelector("#filtersPopup");
-        if (filtersPopup && filtersPopup.classList.contains("show")) {
-            filtersPopup.classList.remove("show");
-        }
-
-        itemToDelete = null;
-    }
-});
-
-window.addEventListener("click", (event) => {
-    if (event.target.classList.contains("modal")) {
-        event.target.classList.remove("show");
-        if (event.target === deleteConfirmModal) {
-            itemToDelete = null;
-        }
-    }
-});
+document
+    .querySelector("#albumName")
+    ?.addEventListener("input", updateFormPreview);
+document
+    .querySelector("#albumArtists")
+    ?.addEventListener("input", updateFormPreview);
+document
+    .querySelector("#imageUrl")
+    ?.addEventListener("input", updateFormPreview);
+document
+    .querySelector("#releaseYear")
+    ?.addEventListener("input", updateFormPreview);
+document
+    .querySelector("#releaseMonth")
+    ?.addEventListener("input", updateFormPreview);
+document
+    .querySelector("#releaseDay")
+    ?.addEventListener("input", updateFormPreview);
+document
+    .querySelector("#wantedToggle")
+    ?.addEventListener("change", updateFormPreview);
+document
+    .querySelector("#vinylCheck")
+    ?.addEventListener("change", updateFormPreview);
+document
+    .querySelector("#cdCheck")
+    ?.addEventListener("change", updateFormPreview);

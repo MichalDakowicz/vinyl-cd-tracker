@@ -1254,7 +1254,7 @@ body.dark-mode #filterGenre option:hover {
 .album-details {
     flex: 1;
     padding: 20px 20px 20px 0;
-    min-width: 0; 
+    min-width: 0;
 }
 
 .album-title {
@@ -1942,7 +1942,7 @@ body.dark-mode .card .actions button img {
 }
 
 .reorder-list-container {
-    max-height: 60vh; 
+    max-height: 60vh;
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1981,7 +1981,7 @@ body.dark-mode .reorder-list-container {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0; 
+    min-width: 0;
 }
 
 .reorder-item-title {
@@ -2018,19 +2018,19 @@ body.dark-mode .reorder-list-container {
     font-size: 16px;
     border-radius: 4px;
     transition: background-color 0.2s ease;
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .reorder-item-controls button img {
-    width: 18px; 
-    height: 18px; 
-    vertical-align: middle; 
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
 }
 
 body.dark-mode .reorder-item-controls button img {
-    filter: invert(1); 
+    filter: invert(1);
 }
 
 .reorder-item-controls button:hover {
@@ -2050,4 +2050,276 @@ body.dark-mode .reorder-item-controls button:hover {
 }
 .modal-actions button.cancel:hover {
     background-color: #5a6268;
+}
+
+#loginContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    margin-top: clamp(20px, 10vh, 80px); 
+    border-radius: 12px;
+    background-color: var(--background-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body.dark-mode #loginContainer {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+#loginContainer h2 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+#loginContainer p {
+    font-size: 1rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 25px;
+    max-width: 300px;
+}
+
+#loginButton {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+}
+
+#loginButton:hover {
+    background-color: #27774b;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#loginButton:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#userAuthStatus {
+    color: var(--text-color);
+    border-radius: 8px; 
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+#userAuthStatus span {
+    font-weight: 500;
+}
+
+.auth-button {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background-color: #e53935; 
+    color: white;
+    border: none;
+    border-radius: 20px; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.auth-button:hover {
+    background-color: #c62828; 
+    transform: translateY(-2px);
+}
+
+.auth-button:active {
+    transform: translateY(0px);
+}
+
+body.dark-mode #loginButton {
+    background-color: #007bff;
+}
+
+body.dark-mode #loginButton:hover {
+    background-color: #0056b3;
+}
+
+body.dark-mode .auth-button {
+    background-color: #d32f2f;
+}
+
+body.dark-mode .auth-button:hover {
+    background-color: #b71c1c;
+}
+
+@media screen and (max-width: 600px) {
+    #loginContainer {
+        padding: 30px 15px;
+        margin-top: clamp(20px, 8vh, 60px);
+    }
+    #loginContainer h2 {
+        font-size: 1.6rem;
+    }
+    #loginContainer p {
+        font-size: 0.95rem;
+    }
+    #userAuthStatus {
+        font-size: 0.85rem;
+        gap: 6px; 
+        flex-direction: column;
+        align-items: flex-end; 
+        border-radius: 8px;
+    }
+
+    #userAuthStatus span {
+        font-size: 0.8rem; 
+        text-align: right; 
+        margin-bottom: 4px;
+    }
+
+    #loginButton {
+        padding: 10px 25px;
+        font-size: 1rem;
+    }
+
+    .auth-button {
+        padding: 6px 12px; 
+        font-size: 0.8rem; 
+        width: 100%; 
+        text-align: center;
+    }
+}
+
+body.logged-out-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; 
+    padding: 20px; 
+    box-sizing: border-box;
+}
+
+.logged-out-view #appContent,
+.logged-out-view #userAuthStatus,
+.logged-out-view .container {
+    display: none !important; 
+}
+
+.logged-out-view #loginContainer {
+    display: flex !important;
+    margin-top: 0; 
+}
+
+#bottomControls {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 1000;
+}
+
+#userAuthStatus .auth-button.icon-button {
+    background: none;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    border-radius: 50%; 
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    width: 40px;
+    height: 40px; 
+}
+
+#userAuthStatus .auth-button.icon-button img {
+    width: 20px; 
+    height: 20px;
+    filter: var(--icon-filter, invert(0)); 
+}
+
+body.dark-mode #userAuthStatus .auth-button.icon-button img {
+    filter: var(--icon-filter-dark, invert(1));
+}
+
+#userAuthStatus .auth-button.icon-button:hover {
+    background-color: var(--button-hover-bg-color);
+    border-color: var(--button-hover-bg-color);
+}
+
+#darkMode {
+    position: static; 
+    display: flex;
+    align-items: center;
+}
+
+#darkMode label {
+    margin-right: 5px; 
+}
+
+
+#loginButton {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+}
+
+body {
+    padding-bottom: 60px; 
+}
+
+@media screen and (max-width: 600px) {
+    #bottomControls {
+        bottom: 0.5rem;
+        left: 0.5rem;
+        gap: 5px;
+    }
+
+    #userAuthStatus .auth-button.icon-button {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+
+    #userAuthStatus .auth-button.icon-button img {
+        width: 18px;
+        height: 18px;
+    }
+
+    #darkMode label {
+        font-size: 0.9rem; 
+    }
+
+    .switch {
+        width: 40px;
+        height: 20px;
+    }
+
+    .slider:before {
+        height: 12px;
+        width: 12px;
+        left: 4px;
+        bottom: 4px;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+    body {
+        padding-bottom: 70px; 
+    }
 }
