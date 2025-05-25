@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Vinyl/CD Tracker</title>
+        <title>Music Tracker</title>
         <link rel="shortcut icon" href="icon.png" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
         <link rel="manifest" href="manifest.json" />
@@ -25,7 +25,7 @@
     <body>
         <div class="container">
             <div class="header">
-                <h1>Vinyl/CD Tracker</h1>
+                <h1>Music Tracker</h1>
                 <div class="header-buttons">
                     <button id="statsButton" title="Statistics">
                         <img src="img/stats.svg" alt="Statistics" />
@@ -111,8 +111,7 @@
             <button id="loginButton">Login with Google</button>
         </div>
         <div id="bottomControls">
-            <div id="userAuthStatus" class="user-auth-status">
-            </div>
+            <div id="userAuthStatus" class="user-auth-status"></div>
             <div id="darkMode">
                 <input type="checkbox" id="dark-mode-toggle" />
                 <label for="dark-mode-toggle">Dark Mode</label>
@@ -397,10 +396,8 @@
             </div>
         </div>
     </body>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script type="module" src="firebase-config.js"></script>
     <script type="module" src="spotify.js"></script>
+    <script type="module" src="applemusic.js"></script>
     <script type="module" src="script.js"></script>
 </html>

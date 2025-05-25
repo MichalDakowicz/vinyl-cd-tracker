@@ -2053,19 +2053,19 @@ body.dark-mode .reorder-item-controls button:hover {
 }
 
 #loginContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
-    text-align: center;
-    margin-top: clamp(20px, 10vh, 80px); 
-    border-radius: 12px;
-    background-color: var(--background-color);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 90%;
+    padding: 40px 30px;
+    background-color: var(--background-color);
+    border-radius: 12px;
 }
 
 body.dark-mode #loginContainer {
@@ -2113,7 +2113,7 @@ body.dark-mode #loginContainer {
 
 #userAuthStatus {
     color: var(--text-color);
-    border-radius: 8px; 
+    border-radius: 8px;
     font-size: 0.95rem;
     display: flex;
     align-items: center;
@@ -2122,28 +2122,26 @@ body.dark-mode #loginContainer {
     transition: all 0.3s ease;
 }
 
-#userAuthStatus span {
-    font-weight: 500;
-}
-
-.auth-button {
-    padding: 8px 18px;
+#logoutButton {
+    padding: 8px;
     font-size: 0.9rem;
     font-weight: 500;
-    background-color: #e53935; 
+    background-color: #e53935;
     color: white;
     border: none;
-    border-radius: 20px; 
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.auth-button:hover {
-    background-color: #c62828; 
+#logoutButton:hover {
+    background-color: #c62828;
     transform: translateY(-2px);
 }
 
-.auth-button:active {
+#logoutButton:active {
     transform: translateY(0px);
 }
 
@@ -2164,6 +2162,9 @@ body.dark-mode .auth-button:hover {
 }
 
 @media screen and (max-width: 600px) {
+    h1 {
+        font-size: 1.5rem;
+    }
     #loginContainer {
         padding: 30px 15px;
         margin-top: clamp(20px, 8vh, 60px);
@@ -2176,15 +2177,15 @@ body.dark-mode .auth-button:hover {
     }
     #userAuthStatus {
         font-size: 0.85rem;
-        gap: 6px; 
+        gap: 6px;
         flex-direction: column;
-        align-items: flex-end; 
+        align-items: flex-end;
         border-radius: 8px;
     }
 
     #userAuthStatus span {
-        font-size: 0.8rem; 
-        text-align: right; 
+        font-size: 0.8rem;
+        text-align: right;
         margin-bottom: 4px;
     }
 
@@ -2194,10 +2195,16 @@ body.dark-mode .auth-button:hover {
     }
 
     .auth-button {
-        padding: 6px 12px; 
-        font-size: 0.8rem; 
-        width: 100%; 
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        width: 100%;
         text-align: center;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    h1 {
+        font-size: 1.2rem;
     }
 }
 
@@ -2206,20 +2213,20 @@ body.logged-out-view {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh; 
-    padding: 20px; 
+    min-height: 100vh;
+    padding: 20px;
     box-sizing: border-box;
 }
 
 .logged-out-view #appContent,
 .logged-out-view #userAuthStatus,
 .logged-out-view .container {
-    display: none !important; 
+    display: none !important;
 }
 
 .logged-out-view #loginContainer {
     display: flex !important;
-    margin-top: 0; 
+    margin-top: 0;
 }
 
 #bottomControls {
@@ -2236,7 +2243,7 @@ body.logged-out-view {
     background: none;
     border: 1px solid var(--border-color);
     background-color: var(--background-color);
-    border-radius: 50%; 
+    border-radius: 50%;
     padding: 8px;
     display: flex;
     align-items: center;
@@ -2244,13 +2251,13 @@ body.logged-out-view {
     cursor: pointer;
     transition: background-color 0.3s ease, border-color 0.3s ease;
     width: 40px;
-    height: 40px; 
+    height: 40px;
 }
 
 #userAuthStatus .auth-button.icon-button img {
-    width: 20px; 
+    width: 20px;
     height: 20px;
-    filter: var(--icon-filter, invert(0)); 
+    filter: var(--icon-filter, invert(0));
 }
 
 body.dark-mode #userAuthStatus .auth-button.icon-button img {
@@ -2263,15 +2270,14 @@ body.dark-mode #userAuthStatus .auth-button.icon-button img {
 }
 
 #darkMode {
-    position: static; 
+    position: static;
     display: flex;
     align-items: center;
 }
 
 #darkMode label {
-    margin-right: 5px; 
+    margin-right: 5px;
 }
-
 
 #loginButton {
     padding: 12px 25px;
@@ -2279,7 +2285,7 @@ body.dark-mode #userAuthStatus .auth-button.icon-button img {
 }
 
 body {
-    padding-bottom: 60px; 
+    padding-bottom: 60px;
 }
 
 @media screen and (max-width: 600px) {
@@ -2301,7 +2307,7 @@ body {
     }
 
     #darkMode label {
-        font-size: 0.9rem; 
+        font-size: 0.9rem;
     }
 
     .switch {
@@ -2320,6 +2326,6 @@ body {
         transform: translateX(20px);
     }
     body {
-        padding-bottom: 70px; 
+        padding-bottom: 70px;
     }
 }

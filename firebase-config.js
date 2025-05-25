@@ -1,12 +1,19 @@
+// firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+import {
+    getDatabase,
+    ref,
+    set,
+    get,
+    onValue,
+} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 import {
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
     onAuthStateChanged,
     signOut,
-} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js"; 
+} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC-UfY5P8VjTNoHkAEUVzLqrQX9TgchbuY",
@@ -22,7 +29,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-const auth = getAuth(app); 
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export {
@@ -32,4 +39,8 @@ export {
     signInWithPopup,
     onAuthStateChanged,
     signOut,
+    ref,
+    set,
+    get,
+    onValue,
 };
