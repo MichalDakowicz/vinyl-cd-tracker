@@ -426,7 +426,22 @@ function renderItems(itemsToRender) {
         newItemElement.setAttribute("data-index", index);
         newItemElement.setAttribute("data-id", item.id);
         resultsContainer.appendChild(newItemElement);
-    });
+    }); 
+    if (isGridView) {
+        const addButtonCard = document.createElement("div");
+        addButtonCard.classList.add("card", "add-button-card");
+        addButtonCard.innerHTML = `
+            <div class="add-button-content">
+                <img src="${getIconPath("add")}" alt="Add Item" />
+                <span>Add New Item</span>
+            </div>
+        `;
+        addButtonCard.addEventListener("click", () => {
+            const modal = document.querySelector("#addItemModal");
+            if (modal) modal.classList.add("show");
+        });
+        resultsContainer.appendChild(addButtonCard);
+    }
 
     document.querySelectorAll(".linkButton").forEach((button) => {
         button.addEventListener("click", (e) => {
@@ -1058,13 +1073,16 @@ function updateViewMode() {
         );
         viewModeButton.title = `Switch to ${isGridView ? "List" : "Grid"} View`;
     }
+    renderItems(applyFilters(items));
 }
 if (viewModeButton) updateViewMode();
 if (viewModeButton) viewModeButton.addEventListener("click", toggleViewMode);
 
 function initDragAndDrop() {
     if (!resultsContainer) return;
-    const cards = resultsContainer.querySelectorAll(".card");
+    const cards = resultsContainer.querySelectorAll(
+        ".card:not(.add-button-card)"
+    );
     let draggingCard = null;
     let lastOverCard = null;
     let touchStartY = null;
@@ -1172,7 +1190,9 @@ function initDragAndDrop() {
 
 async function saveNewOrder() {
     if (!resultsContainer) return;
-    const cards = resultsContainer.querySelectorAll(".card");
+    const cards = resultsContainer.querySelectorAll(
+        ".card:not(.add-button-card)"
+    );
     const newOrder = [];
     cards.forEach((card) => {
         const itemId = Number(card.dataset.id);
@@ -1277,13 +1297,9 @@ function setupDateInputs() {
 
 const filtersButton = document.querySelector("#filtersButton");
 const filtersPopup = document.querySelector("#filtersPopup");
-const filterVinyl = document.querySelector("#filterVinyl");
-const filterCD = document.querySelector("#filterCD");
-const filterArtist = document.querySelector("#filterArtist");
-const sortBy = document.querySelector("#sortBy");
-const filterGenre = document.querySelector("#filterGenre");
 
 function updateGenresList() {
+    const filterGenre = document.querySelector("#filterGenre");
     if (!filterGenre || !items) return;
     const genresSet = new Set();
     items.forEach((item) => {
@@ -1308,6 +1324,7 @@ function updateGenresList() {
 }
 
 function updateArtistsList() {
+    const filterArtist = document.querySelector("#filterArtist");
     if (!filterArtist || !items) return;
     const artistSet = new Set();
     items.forEach((item) => {
@@ -1332,6 +1349,12 @@ function updateArtistsList() {
 function applyFilters(itemsToFilter) {
     if (!itemsToFilter) return [];
     let filteredItems = [...itemsToFilter];
+
+    const filterVinyl = document.querySelector("#filterVinyl");
+    const filterCD = document.querySelector("#filterCD");
+    const filterArtist = document.querySelector("#filterArtist");
+    const sortBy = document.querySelector("#sortBy");
+    const filterGenre = document.querySelector("#filterGenre");
 
     if (filterVinyl && filterCD && (filterVinyl.checked || filterCD.checked)) {
         filteredItems = filteredItems.filter((item) => {
@@ -1397,7 +1420,13 @@ function applyFilters(itemsToFilter) {
     return filteredItems;
 }
 
-[filterVinyl, filterCD, filterArtist, filterGenre, sortBy].forEach((filter) => {
+[
+    document.querySelector("#filterVinyl"),
+    document.querySelector("#filterCD"),
+    document.querySelector("#filterArtist"),
+    document.querySelector("#filterGenre"),
+    document.querySelector("#sortBy"),
+].forEach((filter) => {
     if (filter)
         filter.addEventListener("change", () => {
             searchItems(searchInput ? searchInput.value : "");

@@ -288,9 +288,11 @@ body.dark-mode select {
 }
 
 @media screen and (max-width: 600px) {
-    .modal-content {
-        width: 95%;
-        margin: 10px;
+    .modal-content:not(.album-view-content) {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        border: none;
     }
 }
 
@@ -874,6 +876,80 @@ body.dark-mode .checkbox-label input[type="checkbox"]:checked {
 #results.grid-view .card .type-badges {
     justify-content: center;
     margin-top: 4px;
+}
+
+/* Add button card for grid view */
+.add-button-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    justify-content: center;
+    background: var(--background-color);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 180px;
+    height: 100%; /* Similar height to regular cards */
+    margin: 0 auto;
+}
+
+.add-button-card:hover {
+    border-color: var(--button-bg-color);
+    background-color: var(--accent-light-medium);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.add-button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-color);
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.add-button-card:hover .add-button-content {
+    opacity: 1;
+    color: var(--button-bg-color);
+}
+
+.add-button-content img {
+    width: 48px;
+    height: 48px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.add-button-card:hover .add-button-content img {
+    opacity: 1;
+}
+
+.add-button-content span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Hide original add button in grid view */
+#results.grid-view ~ #addItemButton {
+    display: none;
+}
+
+body.dark-mode .add-button-card {
+    background: var(--dark-gray-light);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .add-button-card:hover {
+    background-color: var(--dark-gray-medium);
+    border-color: var(--button-bg-color);
+}
+
+body.dark-mode .add-button-content img {
+    filter: invert(1);
 }
 
 #results.grid-view .card .actions {
@@ -2261,13 +2337,18 @@ body.dark-mode #loginContainer {
     font-size: 0.9rem;
     font-weight: 500;
     background-color: #e53935;
-    color: white;
     border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+#logoutButton img {
+    width: 26px;
+    height: 26px;
+    filter: invert(1);
 }
 
 #logoutButton:hover {
