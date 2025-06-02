@@ -336,7 +336,7 @@ function renderUI() {
 function formatDate(dateString) {
     if (!dateString) return "";
     const parts = dateString.split("-");
-    if (parts.length < 3) return dateString; // Handle incomplete dates
+    if (parts.length < 3) return dateString;
     const year = parts[0];
     const month = parts[1];
     const day = parts[2];
@@ -819,7 +819,7 @@ if (resultsContainer) {
                         "No album link available for this item. Edit to add one.",
                         "error"
                     );
-                    targetButton.disabled = false; // Re-enable if it was disabled
+                    targetButton.disabled = false;
                     const imgElement = targetButton.querySelector("img");
                     if (imgElement) imgElement.src = getIconPath("refresh");
                     return;
@@ -1065,6 +1065,11 @@ if (viewModeButton) viewModeButton.addEventListener("click", toggleViewMode);
 function initDragAndDrop() {
     if (!resultsContainer) return;
     const cards = resultsContainer.querySelectorAll(".card");
+    let draggingCard = null;
+    let lastOverCard = null;
+    let touchStartY = null;
+    let touchDragging = false;
+
     cards.forEach((card) => {
         if (!card) return;
         try {
@@ -1074,27 +1079,90 @@ function initDragAndDrop() {
 
             card.addEventListener("dragstart", (e) => {
                 card.classList.add("dragging");
-                e.dataTransfer.setData("text/plain", card.dataset.id); // Use ID for robustness
+                draggingCard = card;
+                e.dataTransfer.setData("text/plain", card.dataset.id);
             });
             card.addEventListener("dragend", () => {
                 card.classList.remove("dragging");
-                saveNewOrder(); // Save after drag ends
+                draggingCard = null;
+                lastOverCard = null;
+                clearTimeout(card._saveTimeout);
+                card._saveTimeout = setTimeout(saveNewOrder, 100);
             });
             card.addEventListener("dragover", (e) => {
                 e.preventDefault();
-                const draggingCard = document.querySelector(".dragging");
                 if (!draggingCard || draggingCard === card) return;
+                if (lastOverCard && lastOverCard !== card) {
+                    lastOverCard.classList.remove("drag-over");
+                }
+                card.classList.add("drag-over");
+                lastOverCard = card;
                 const box = card.getBoundingClientRect();
                 const offsetY = e.clientY - box.top;
                 const isBefore = offsetY < box.height / 2;
-                if (isBefore) {
-                    card.parentNode.insertBefore(draggingCard, card);
-                } else {
+                if (
+                    (isBefore && card.previousSibling !== draggingCard) ||
+                    (!isBefore && card.nextSibling !== draggingCard)
+                ) {
                     card.parentNode.insertBefore(
                         draggingCard,
-                        card.nextSibling
+                        isBefore ? card : card.nextSibling
                     );
                 }
+            });
+            card.addEventListener("dragleave", () => {
+                card.classList.remove("drag-over");
+            });
+            card.addEventListener("drop", (e) => {
+                card.classList.remove("drag-over");
+            });
+
+            card.addEventListener("touchstart", (e) => {
+                if (e.touches.length !== 1) return;
+                touchStartY = e.touches[0].clientY;
+                draggingCard = card;
+                touchDragging = true;
+                card.classList.add("dragging");
+            });
+            card.addEventListener("touchmove", (e) => {
+                if (!touchDragging || !draggingCard) return;
+                const touch = e.touches[0];
+                const overElem = document.elementFromPoint(
+                    touch.clientX,
+                    touch.clientY
+                );
+                const overCard =
+                    overElem && overElem.closest && overElem.closest(".card");
+                if (overCard && overCard !== draggingCard) {
+                    if (lastOverCard && lastOverCard !== overCard) {
+                        lastOverCard.classList.remove("drag-over");
+                    }
+                    overCard.classList.add("drag-over");
+                    lastOverCard = overCard;
+                    const box = overCard.getBoundingClientRect();
+                    const offsetY = touch.clientY - box.top;
+                    const isBefore = offsetY < box.height / 2;
+                    if (
+                        (isBefore &&
+                            overCard.previousSibling !== draggingCard) ||
+                        (!isBefore && overCard.nextSibling !== draggingCard)
+                    ) {
+                        overCard.parentNode.insertBefore(
+                            draggingCard,
+                            isBefore ? overCard : overCard.nextSibling
+                        );
+                    }
+                }
+            });
+            card.addEventListener("touchend", (e) => {
+                if (!touchDragging) return;
+                card.classList.remove("dragging");
+                if (lastOverCard) lastOverCard.classList.remove("drag-over");
+                draggingCard = null;
+                lastOverCard = null;
+                touchDragging = false;
+                clearTimeout(card._saveTimeout);
+                card._saveTimeout = setTimeout(saveNewOrder, 100);
             });
         } catch (error) {
             console.error("Error setting up drag and drop for card:", error);
@@ -1119,7 +1187,7 @@ async function saveNewOrder() {
         items.push(...newOrder);
         await saveItemsToFirebase();
     } else {
-        await loadItemsFromFirebase(); // Resync if order is messed up
+        await loadItemsFromFirebase();
     }
 }
 
@@ -1532,7 +1600,7 @@ function initializeTagInput(containerId, inputId, placeholder) {
 
     if (hiddenInput) {
         hiddenInput.style.display = "none";
-        formContainer.appendChild(container); // Append to the specified container in HTML
+        formContainer.appendChild(container);
     } else {
         return null;
     }
