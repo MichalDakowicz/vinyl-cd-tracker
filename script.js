@@ -15,6 +15,16 @@ import {
 let items = [];
 let currentUser = null;
 let userItemsRef = null;
+let isSharedView = false;
+
+// Check for shared collection in URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+const shareId = urlParams.get('share');
+
+if (shareId) {
+    isSharedView = true;
+    loadSharedCollection(shareId);
+}
 
 const loginContainer = document.querySelector("#loginContainer");
 const appContent = document.querySelector("#appContent");
@@ -113,6 +123,9 @@ function updateAllIcons() {
 
     const importButtonIcon = document.querySelector("#importButton img");
     if (importButtonIcon) importButtonIcon.src = getIconPath("import");
+
+    const shareButtonIcon = document.querySelector("#shareButton img");
+    if (shareButtonIcon) shareButtonIcon.src = getIconPath("link");
 
     const modalAddButtonIcon = document.querySelector(
         "#addItemForm button[type='submit'] img"
@@ -242,7 +255,136 @@ async function handleLogout() {
     }
 }
 
+async function loadSharedCollection(shareId) {
+    try {
+        // Check if Firebase is available
+        if (typeof database === 'undefined') {
+            // For demo/testing purposes when Firebase is not available
+            const mockSharedData = {
+                items: [
+                    {
+                        id: 1,
+                        albumName: "The Dark Side of the Moon",
+                        albumArtists: ["Pink Floyd"],
+                        releaseDate: "1973-03-01",
+                        genres: ["Progressive Rock", "Psychedelic Rock"],
+                        types: { vinyl: true, cd: false },
+                        wanted: false,
+                        imageUrl: "img/default.png",
+                        albumLink: "https://open.spotify.com/album/4LH4d3cOWNNsVw41Gqt2kv"
+                    },
+                    {
+                        id: 2,
+                        albumName: "Abbey Road",
+                        albumArtists: ["The Beatles"],
+                        releaseDate: "1969-09-26",
+                        genres: ["Rock", "Pop"],
+                        types: { vinyl: true, cd: true },
+                        wanted: false,
+                        imageUrl: "img/default.png",
+                        albumLink: "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN"
+                    },
+                    {
+                        id: 3,
+                        albumName: "Kind of Blue",
+                        albumArtists: ["Miles Davis"],
+                        releaseDate: "1959-08-17",
+                        genres: ["Jazz"],
+                        types: { vinyl: true, cd: false },
+                        wanted: true,
+                        imageUrl: "img/default.png"
+                    }
+                ],
+                metadata: {
+                    sharedBy: "Demo User",
+                    sharedAt: new Date().toISOString(),
+                    totalItems: 3
+                }
+            };
+            
+            items = mockSharedData.items;
+            showSharedCollection(mockSharedData.metadata);
+            renderUI();
+            return;
+        }
+        
+        const shareRef = ref(database, `public-shares/${shareId}`);
+        const snapshot = await get(shareRef);
+        
+        if (snapshot.exists()) {
+            const shareData = snapshot.val();
+            items = shareData.items || [];
+            
+            // Show shared collection UI
+            showSharedCollection(shareData.metadata);
+            renderUI();
+        } else {
+            notifyUser("Shared collection not found or may have expired.", "error");
+            // Remove share parameter and reload
+            const url = new URL(window.location);
+            url.searchParams.delete('share');
+            window.history.replaceState({}, '', url);
+            isSharedView = false;
+        }
+    } catch (error) {
+        console.error("Error loading shared collection:", error);
+        notifyUser("Failed to load shared collection.", "error");
+        isSharedView = false;
+    }
+}
+
+function showSharedCollection(metadata) {
+    // Hide login container and show app content
+    if (loginContainer) loginContainer.style.display = "none";
+    if (appContent) appContent.style.display = "block";
+    
+    // Show shared collection banner
+    const header = document.querySelector(".header");
+    if (header && !document.querySelector(".shared-banner")) {
+        const banner = document.createElement("div");
+        banner.className = "shared-banner";
+        banner.innerHTML = `
+            <div class="shared-info">
+                <strong>📋 Viewing Shared Collection</strong>
+                <span>Shared by ${metadata?.sharedBy || "Unknown"}</span>
+                <span>${metadata?.totalItems || items.length} items</span>
+            </div>
+            <div class="shared-actions">
+                <button id="viewOwnCollection" class="view-own-btn">View My Collection</button>
+            </div>
+        `;
+        header.appendChild(banner);
+        
+        // Add click handler for "View My Collection" button
+        const viewOwnBtn = banner.querySelector("#viewOwnCollection");
+        if (viewOwnBtn) {
+            viewOwnBtn.addEventListener("click", () => {
+                const url = new URL(window.location);
+                url.searchParams.delete('share');
+                window.location = url.toString();
+            });
+        }
+    }
+    
+    // Hide action buttons that shouldn't be available in shared view
+    const actionsToHide = ["#addItemButton", "#shareButton"];
+    actionsToHide.forEach(selector => {
+        const element = document.querySelector(selector);
+        if (element) element.style.display = "none";
+    });
+    
+    // Update user auth status
+    if (userAuthStatus) {
+        userAuthStatus.innerHTML = `
+            <span class="shared-status">👁️ Viewing shared collection</span>
+        `;
+    }
+}
+
 onAuthStateChanged(auth, async (user) => {
+    // Skip auth flow if viewing shared collection
+    if (isSharedView) return;
+    
     if (user) {
         currentUser = user;
         userItemsRef = ref(database, `users/${currentUser.uid}/items`);
@@ -415,19 +557,21 @@ function renderItems(itemsToRender) {
             </div>
             <div class="actions">
                 ${linkButtonHTML}
+                ${!isSharedView ? `
                 <button class="editButton" data-id="${item.id}">
                     <img src="${getIconPath("edit")}" alt="Edit">
                 </button>
                 <button class="removeButton" data-id="${item.id}">
                     <img src="${getIconPath("delete")}" alt="Remove">
                 </button>
+                ` : ''}
             </div>
         `;
         newItemElement.setAttribute("data-index", index);
         newItemElement.setAttribute("data-id", item.id);
         resultsContainer.appendChild(newItemElement);
     }); 
-    if (isGridView) {
+    if (isGridView && !isSharedView) {
         const addButtonCard = document.createElement("div");
         addButtonCard.classList.add("card", "add-button-card");
         addButtonCard.innerHTML = `
@@ -1055,6 +1199,61 @@ if (importButton) {
             reader.readAsText(file);
         };
         input.click();
+    });
+}
+
+const shareButton = document.querySelector("#shareButton");
+
+if (shareButton) {
+    shareButton.addEventListener("click", async () => {
+        if (!currentUser) {
+            notifyUser("Please log in to share your collection.", "error");
+            return;
+        }
+
+        if (items.length === 0) {
+            notifyUser("Your collection is empty. Add some items first!", "error");
+            return;
+        }
+
+        try {
+            shareButton.disabled = true;
+            const shareButtonIcon = shareButton.querySelector("img");
+            if (shareButtonIcon) shareButtonIcon.src = getIconPath("loading");
+
+            // Generate a unique share ID
+            const shareId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+            
+            // Create shareable collection data
+            const shareData = {
+                items: items,
+                metadata: {
+                    sharedBy: currentUser.displayName || currentUser.email || "Anonymous",
+                    sharedAt: new Date().toISOString(),
+                    totalItems: items.length
+                }
+            };
+
+            // Store in Firebase under public shares
+            const shareRef = ref(database, `public-shares/${shareId}`);
+            await set(shareRef, shareData);
+
+            // Generate shareable URL
+            const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareId}`;
+
+            // Copy to clipboard and show notification
+            await navigator.clipboard.writeText(shareUrl);
+            
+            notifyUser("Share URL copied to clipboard! Anyone with this link can view your collection.", "success");
+            
+        } catch (error) {
+            console.error("Error sharing collection:", error);
+            notifyUser("Failed to share collection. Please try again.", "error");
+        } finally {
+            shareButton.disabled = false;
+            const shareButtonIcon = shareButton.querySelector("img");
+            if (shareButtonIcon) shareButtonIcon.src = getIconPath("link");
+        }
     });
 }
 
