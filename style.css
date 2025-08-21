@@ -719,6 +719,78 @@ h1 {
     height: 24px;
 }
 
+.shared-banner {
+    background: linear-gradient(135deg, var(--primary-light), var(--accent-light-medium));
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.shared-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.shared-info strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.shared-info span {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.shared-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.view-own-btn {
+    padding: 6px 12px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-own-btn:hover {
+    background: var(--primary-hover-color);
+    transform: translateY(-1px);
+}
+
+.shared-status {
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+body.dark-mode .shared-banner {
+    background: linear-gradient(135deg, var(--dark-gray-light), var(--dark-gray-medium));
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .shared-info span {
+    color: var(--white);
+    opacity: 0.9;
+}
+
+body.dark-mode .shared-info strong {
+    color: var(--primary-color);
+}
+
 .type-checkboxes {
     margin-bottom: 15px;
 }
