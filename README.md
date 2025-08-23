@@ -26,4 +26,4 @@ The app now includes a sharing feature that allows you to share your music colle
 - 🎨 Same responsive design as the main app
 - 🔒 Privacy-focused (only explicitly shared collections are accessible)
 
-Example share URL: `https://vinyl-cd-tracker.firebaseapp.com/?share=abc123def456`
+Example share URL: `https://michaldakowicz.github.io/vinyl-cd-tracker/?share=abc123def456`
