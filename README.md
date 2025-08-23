@@ -10,6 +10,11 @@ A simple library-like website to hold information about your music collection
 - 🌙 Dark mode support
 - 📥 Import/Export your collection data
 - 🔗 **Share your collection** with others via generated URLs
+- 🧪 **Test Mode** - Try the app without login ([test.html](test.html))
+
+## Test Mode
+
+Want to try the app without creating an account? Visit [test.html](test.html) for a demo version with sample data. No login required! [Learn more about test mode](TEST_MODE.md).
 
 ## Sharing Collections
 

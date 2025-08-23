@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Music Tracker - Test Mode</title>
+        <link rel="shortcut icon" href="icon.png" type="image/x-icon" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="manifest" href="manifest.json" />
+        <meta
+            name="theme-color"
+            content="#ffffff"
+            media="(prefers-color-scheme: light)"
+        />
+        <meta
+            name="theme-color"
+            content="#333333"
+            media="(prefers-color-scheme: dark)"
+        />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-title" content="Music Tracker" />
+        <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Music Tracker</h1>
+                <div class="header-buttons">
+                    <button id="statsButton" title="Statistics">
+                        <img src="img/stats.svg" alt="Statistics" />
+                    </button>
+                    <button id="viewModeButton" title="Toggle View">
+                        <img src="img/grid.svg" alt="Toggle View" />
+                    </button>
+                    <button id="reorderButton" title="Reorder Items (List)">
+                        <img src="img/reorder.svg" alt="Reorder" />
+                    </button>
+                    <button id="exportButton" title="Export Data">
+                        <img src="img/export.svg" alt="Export" />
+                    </button>
+                    <button id="importButton" title="Import Data">
+                        <img src="img/import.svg" alt="Import" />
+                    </button>
+                    <button id="shareButton" title="Share Collection">
+                        <img src="img/link.svg" alt="Share" />
+                    </button>
+                </div>
+                <!-- Test Mode Banner -->
+                <div class="test-banner">
+                    <div class="test-info">
+                        <strong>🧪 Test Mode</strong>
+                        <span>Demo data loaded - no login required</span>
+                        <span id="test-item-count">5 test items</span>
+                    </div>
+                    <div class="test-actions">
+                        <button id="exitTestMode" class="exit-test-btn" onclick="window.location.href='index.html'">Go to Live App</button>
+                    </div>
+                </div>
+            </div>
+            <div class="search">
+                <input
+                    type="text"
+                    id="search"
+                    placeholder="Search..."
+                    list="search-suggestions"
+                />
+                <button id="filterButton" title="Filters">
+                    <img src="img/filter.svg" alt="Filters" />
+                </button>
+                <div id="filterOptions" class="filter-dropdown" style="display: none;">
+                    <div class="filter-group">
+                        <h4>Wanted Status</h4>
+                        <label>
+                            <input type="checkbox" id="filterWanted" />
+                            Show only wanted items
+                        </label>
+                    </div>
+                    <div class="filter-group">
+                        <h4>Media Type</h4>
+                        <label>
+                            <input type="checkbox" id="filterVinyl" />
+                            Vinyl
+                        </label>
+                        <label>
+                            <input type="checkbox" id="filterCD" />
+                            CD
+                        </label>
+                    </div>
+                    <div class="filter-group">
+                        <h4>Sort By</h4>
+                        <select id="sortBy">
+                            <option value="custom">Custom Order</option>
+                            <option value="name">Album Name</option>
+                            <option value="artist">Artist</option>
+                            <option value="year">Year</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="randomButton" title="Random Album">
+                    <img src="img/random.svg" alt="Random" />
+                </button>
+                <button id="clearButton" title="Clear Search">
+                    <img src="img/clear.svg" alt="Clear" />
+                </button>
+            </div>
+            <datalist id="search-suggestions"></datalist>
+            <div id="appContent">
+                <div id="results"></div>
+                <button id="addItemButton">
+                    <img src="img/add.svg" alt="Add Item" />
+                </button>
+            </div>
+        </div>
+
+        <div id="bottomControls">
+            <div id="userAuthStatus" class="user-auth-status">
+                <span class="test-status">🧪 Test Mode Active</span>
+            </div>
+            <div id="darkMode">
+                <input type="checkbox" id="dark-mode-toggle" />
+                <label for="dark-mode-toggle">Dark Mode</label>
+            </div>
+        </div>
+
+        <div id="addItemModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <form id="addItemForm">
+                    <label for="albumLink">Album Link (optional):</label>
+                    <input
+                        type="url"
+                        id="albumLink"
+                        name="albumLink"
+                        placeholder="Spotify, Apple Music, etc. URL (Spotify and Apple Music preferred for auto fetching data)"
+                    />
+                    <label for="imageUrl">Image URL:</label>
+                    <input
+                        type="text"
+                        id="imageUrl"
+                        name="imageUrl"
+                        placeholder="Optional if Spotify link provided"
+                    />
+                    <label for="albumName">Album Name:</label>
+                    <input
+                        type="text"
+                        id="albumName"
+                        name="albumName"
+                        required
+                    />
+                    <label for="albumArtists">Artists:</label>
+                    <input
+                        type="text"
+                        id="albumArtists"
+                        name="albumArtists"
+                        placeholder="Use comma or enter to separate multiple artists"
+                        required
+                    />
+                    <label for="releaseDate">Release Date:</label>
+                    <input type="date" id="releaseDate" name="releaseDate" />
+                    <label for="genres">Genres:</label>
+                    <input
+                        type="text"
+                        id="genres"
+                        name="genres"
+                        placeholder="Use comma or enter to separate multiple genres"
+                    />
+                    <div class="type-checkboxes">
+                        <label>Media Type:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    id="vinylCheck"
+                                    name="type"
+                                    value="vinyl"
+                                />
+                                Vinyl
+                            </label>
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    id="cdCheck"
+                                    name="type"
+                                    value="cd"
+                                />
+                                CD
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="wantedToggle">Wanted:</label>
+                        <label class="switch">
+                            <input type="checkbox" id="wantedToggle" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button type="submit">
+                        <img src="img/add.svg" alt="Add" />
+                    </button>
+                </form>
+                <div id="formPreviewCard" class="card"></div>
+            </div>
+        </div>
+
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <span id="closePreview" class="close">&times;</span>
+                <div id="previewCard"></div>
+            </div>
+        </div>
+
+        <script type="module" src="test-script.js"></script>
+    </body>
+</html>
