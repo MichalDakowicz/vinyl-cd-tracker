@@ -543,6 +543,74 @@ showAppContent();
 updateViewMode();
 renderUI();
 
+// Share button functionality for test mode (setup after DOM is ready)
+const shareButton = document.querySelector("#shareButton");
+
+if (shareButton) {
+    shareButton.addEventListener("click", async () => {
+        if (items.length === 0) {
+            notifyUser("Your collection is empty. Add some items first!", "error");
+            return;
+        }
+
+        try {
+            shareButton.disabled = true;
+            const shareButtonIcon = shareButton.querySelector("img");
+            if (shareButtonIcon) shareButtonIcon.src = getIconPath("loading");
+
+            // Generate a unique share ID for test mode
+            const shareId = 'test-' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+            
+            // Create shareable collection data for test mode
+            const shareData = {
+                items: items,
+                metadata: {
+                    sharedBy: "Test User",
+                    sharedAt: new Date().toISOString(),
+                    totalItems: items.length
+                }
+            };
+
+            // In test mode, we simulate the share by creating a URL that would work
+            // if the collection was actually saved to Firebase
+            const shareUrl = `${window.location.origin}${window.location.pathname.replace('test.html', 'index.html')}?share=${shareId}`;
+
+            // Store temporarily in localStorage for demo purposes (this would normally be Firebase)
+            try {
+                localStorage.setItem(`test-share-${shareId}`, JSON.stringify(shareData));
+            } catch (e) {
+                console.warn("Could not save to localStorage:", e);
+            }
+
+            // Copy to clipboard and show notification
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(shareUrl);
+                notifyUser("Share URL copied to clipboard! (Test mode - sharing simulated)", "success");
+            } else {
+                // Fallback for browsers that don't support clipboard API
+                notifyUser(`Share URL: ${shareUrl} (Test mode - copy this link manually)`, "success");
+            }
+            
+        } catch (error) {
+            console.error("Error sharing collection in test mode:", error);
+            
+            let errorMessage = "Failed to share collection in test mode. ";
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += "Clipboard access denied. The share URL was generated but could not be copied automatically.";
+            } else {
+                errorMessage += "Please try again.";
+            }
+            
+            notifyUser(errorMessage, "error");
+        } finally {
+            shareButton.disabled = false;
+            const shareButtonIcon = shareButton.querySelector("img");
+            if (shareButtonIcon) shareButtonIcon.src = getIconPath("link");
+        }
+    });
+}
+
 // Update test item count
 const testItemCount = document.querySelector("#test-item-count");
 if (testItemCount) {

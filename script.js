@@ -1221,6 +1221,11 @@ if (shareButton) {
             const shareButtonIcon = shareButton.querySelector("img");
             if (shareButtonIcon) shareButtonIcon.src = getIconPath("loading");
 
+            // Check if Firebase is available
+            if (typeof database === 'undefined' || !database) {
+                throw new Error("Firebase database not available. Please check your internet connection and try again.");
+            }
+
             // Generate a unique share ID
             const shareId = Date.now().toString(36) + Math.random().toString(36).substr(2);
             
@@ -1242,13 +1247,33 @@ if (shareButton) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareId}`;
 
             // Copy to clipboard and show notification
-            await navigator.clipboard.writeText(shareUrl);
-            
-            notifyUser("Share URL copied to clipboard! Anyone with this link can view your collection.", "success");
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(shareUrl);
+                notifyUser("Share URL copied to clipboard! Anyone with this link can view your collection.", "success");
+            } else {
+                // Fallback for browsers that don't support clipboard API
+                notifyUser(`Share URL: ${shareUrl} (Copy this link to share your collection)`, "success");
+            }
             
         } catch (error) {
             console.error("Error sharing collection:", error);
-            notifyUser("Failed to share collection. Please try again.", "error");
+            
+            // Provide specific error messages based on the error type
+            let errorMessage = "Failed to share collection. ";
+            
+            if (error.message && error.message.includes("Firebase database not available")) {
+                errorMessage += "Database connection failed. Please check your internet connection and try again.";
+            } else if (error.code === 'PERMISSION_DENIED') {
+                errorMessage += "Permission denied. Please make sure you're logged in and try again.";
+            } else if (error.code === 'NETWORK_ERROR' || error.message.includes('network')) {
+                errorMessage += "Network error. Please check your internet connection and try again.";
+            } else if (error.name === 'NotAllowedError') {
+                errorMessage += "Clipboard access denied. The share URL was generated but could not be copied automatically.";
+            } else {
+                errorMessage += "Please try again or contact support if the problem persists.";
+            }
+            
+            notifyUser(errorMessage, "error");
         } finally {
             shareButton.disabled = false;
             const shareButtonIcon = shareButton.querySelector("img");
