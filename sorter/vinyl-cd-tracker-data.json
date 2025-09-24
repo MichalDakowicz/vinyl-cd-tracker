@@ -1,0 +1,840 @@
+[
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/4Uv86qWpGTxf7fU7lG5X6F?si=D_T6Id2pTs-hhc_hFBt1jA",
+    "albumName": "The College Dropout",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739966943179.3706,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27325b055377757b3cdd6f26b78",
+    "releaseDate": "2004-02-10",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/5ll74bqtkcXlKE7wwkMq4g?si=eUbSvG7rQ5aoFb83TuNPFg",
+    "albumName": "Late Registration",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739966943179.617,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273428d2255141c2119409a31b2",
+    "releaseDate": "2005-08-30",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/20r762YmB5HeofjMCiPMLv?si=PsJ2AcL6SfCeD9aDpPGPvw",
+    "albumName": "My Beautiful Dark Twisted Fantasy",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739987638545,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273d9194aa18fa4c9362b47464f",
+    "releaseDate": "2010-11-22",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/2Ek1q2haOnxVqhvVKqMvJe?si=O4aP2OuLSpOdfztGTTQwqQ",
+    "albumName": "ye",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739966943179.924,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2730cd942c1a864afa4e92d04f2",
+    "releaseDate": "2018-06-01",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/2Wiyo7LzdeBCsVZiRA6vVZ?si=Uo2CTQtgSVyt0XB5eAyFmw",
+    "albumName": "Donda (Deluxe)",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739990001822,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273c5663e50de353981ed2b1a37",
+    "releaseDate": "2021-11-14",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Travis Scott"
+    ],
+    "albumLink": "https://open.spotify.com/album/54Y471E7GNBSOXjZtqONId?si=lXIJsocNTOWlevveEq-ORg",
+    "albumName": "DAYS BEFORE RODEO",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739987377292,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2730fc93fe41791c5aa51ae9645",
+    "releaseDate": "2014-08-18",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Travis Scott"
+    ],
+    "albumLink": "https://open.spotify.com/album/41GuZcammIkupMPKH2OJ6I?si=lFg2MPEmQKyvEGhb__dMUA",
+    "albumName": "ASTROWORLD",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739987883348,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273072e9faef2ef7b6db63834a3",
+    "releaseDate": "2018-08-03",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Travis Scott"
+    ],
+    "albumLink": "https://open.spotify.com/album/18NOKLkZETa4sWwLMIm0UZ?si=hXnDbr8lS8KkUJt8kT4m2g",
+    "albumName": "UTOPIA",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739966943179.228,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273881d8d8378cd01099babcd44",
+    "releaseDate": "2023-07-28",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kendrick Lamar"
+    ],
+    "albumLink": "https://open.spotify.com/album/7ycBtnsMtyVbbwTfJwRjSP?si=9h_9cLjvSJ-GMrQpBeixfg",
+    "albumName": "To Pimp A Butterfly",
+    "genres": [
+      "hip hop",
+      "west coast rap"
+    ],
+    "id": 1739986996380,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273cdb645498cd3d8a2db4d05e1",
+    "releaseDate": "2015-03-16",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kendrick Lamar"
+    ],
+    "albumLink": "https://open.spotify.com/album/0kL3TYRsSXnu0iJvFO3rud?si=Oosi44MtQGqyx9sEL8NuGA",
+    "albumName": "untitled unmastered.",
+    "genres": [
+      "hip hop",
+      "west coast rap"
+    ],
+    "id": 1739987823573,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2738c697f553a46006a5d8886b2",
+    "releaseDate": "2016-03-04",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kendrick Lamar"
+    ],
+    "albumLink": "https://open.spotify.com/album/0hvT3yIEysuuvkK73vgdcW?si=K2GjESLqSa6jKQ3vn5P_Cg",
+    "albumName": "GNX",
+    "genres": [
+      "hip hop",
+      "west coast rap"
+    ],
+    "id": 1739987233329,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58",
+    "releaseDate": "2024-11-22",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Tyler, The Creator"
+    ],
+    "albumLink": "https://open.spotify.com/album/2nkto6YNI4rUYTLqEwWJ3o?si=bnYYDoxeRGms0PNfNxADmA",
+    "albumName": "Flower Boy",
+    "id": 1739966943179.6309,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2738940ac99f49e44f59e6f7fb3",
+    "releaseDate": "2017-07-21",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Tyler, The Creator"
+    ],
+    "albumLink": "https://open.spotify.com/album/5zi7WsKlIiUXv09tbGLKsE?si=BU_XvLuBT1-nFJUGwERvog",
+    "albumName": "IGOR",
+    "id": 1739966943179.6694,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2737005885df706891a3c182a57",
+    "releaseDate": "2019-05-17",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Tyler, The Creator"
+    ],
+    "albumLink": "https://open.spotify.com/album/45ba6QAtNrdv6Ke4MFOKk9?si=VfpttbVrRTWRIghKwqRG1g",
+    "albumName": "CALL ME IF YOU GET LOST",
+    "id": 1739987071162,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273696b4e67423edd64784bfbb4",
+    "releaseDate": "2021-06-25",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Don Toliver"
+    ],
+    "albumLink": "https://open.spotify.com/album/0Kzb3u6kMnOJOZXYFSk33F?si=c-ir5Pg2Sy2WINIqcagicw",
+    "albumName": "HARDSTONE PSYCHO",
+    "id": 1739966997917,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273c800e1a4a237cf8f085183c5",
+    "releaseDate": "2024-06-14",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Lupe Fiasco"
+    ],
+    "albumLink": "https://open.spotify.com/album/1O6d4cNuUV78GeXv7hgr4e?si=Dw-6_AAVRLOu4LkOtm4JVA",
+    "albumName": "Samurai",
+    "id": 1739987298974,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273afd65b04748aff25b77071f4",
+    "releaseDate": "2024-06-28",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "The Weeknd"
+    ],
+    "albumLink": "https://open.spotify.com/album/3OxfaVgvTxUTy7276t7SPU?si=Ys07M70qTjmqz4Lf26wnEQ",
+    "albumName": "Hurry Up Tomorrow",
+    "id": 1739966943179.241,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2737e7f1d0bdb2bb5a2afc4fb25",
+    "releaseDate": "2025-01-31",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Afro Kolektyw"
+    ],
+    "albumLink": "https://open.spotify.com/album/3fx0KMUXyPOQfQjWw1sWMt?si=6qA9jwqOQ3SR8RDPKP2Yow",
+    "albumName": "ostatnie słowo",
+    "id": 1739986945148,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273e0f294474cefb234e7f32dd2",
+    "releaseDate": "2023-02-24",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Tame Impala"
+    ],
+    "albumLink": "https://open.spotify.com/album/79dL7FLiJFOO0EoehUHQBv?si=NC679-Q2R4e686we0WvZnA",
+    "albumName": "Currents",
+    "genres": [
+      "indie",
+      "psychedelic pop"
+    ],
+    "id": 1739966943179.1943,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2739e1cfc756886ac782e363d79",
+    "releaseDate": "2015-07-17",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "C418"
+    ],
+    "albumLink": "https://open.spotify.com/album/3Gt7rOjcZQoHCfnKl5AkK7?si=GuzxC_xcTGmM6xczkWzeWA",
+    "albumName": "Minecraft - Volume Alpha",
+    "id": 1739987509301,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273aaeb5c9fb6131977995b7f0e",
+    "releaseDate": "2011-03-04",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "C418"
+    ],
+    "albumLink": "https://open.spotify.com/album/7CYDRyFCKtAYJBSpfovLyX?si=SSUgR8fdRRyAJLAxA41VpA",
+    "albumName": "Minecraft - Volume Beta",
+    "id": 1739987574244,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2734cf0b29eb06a92aa96acae64",
+    "releaseDate": "2013-11-09",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/4SZko61aMnmgvNhfhgTuD3?si=hlspbn6HQ8-fWlAVywNsdA",
+    "albumName": "Graduation (Japanese)",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739989455954,
+    "imageUrl": "https://i.discogs.com/i1ul9T7soUy5D_fNuiqJORpPQ0PWhqpArOEjpf25dsM/rs:fit/g:sm/q:90/h:439/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMwMjEx/NjMtMTQ1OTQ5OTgx/Ni05NDQ0LmpwZWc.jpeg",
+    "releaseDate": "2007-09-11",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/3WFTGIO6E3Xh4paEOBY9OU?si=mQuQf0DnSz29j_LxqIxrOA",
+    "albumName": "808s & Heartbreak",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739989836233,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273346d77e155d854735410ed18",
+    "releaseDate": "2008-11-24",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "JAY-Z",
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/2IC7s3KVP6ottxQUnkm4eS?si=ZuFFIKzRTauKnclVATEbOQ",
+    "albumName": "Watch The Throne (Deluxe)",
+    "genres": [
+      "hip hop",
+      "east coast hip hop",
+      "rap"
+    ],
+    "id": 1739991657190,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273940bc47d2136cc141eda6193",
+    "releaseDate": "2011-08-08",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/7D2NdGvBHIavgLhmcwhluK?si=NmzwvUdDSz-ipKz-09g1fw",
+    "albumName": "Yeezus",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739986861887,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2731dacfbc31cc873d132958af9",
+    "releaseDate": "2013-06-18",
+    "types": {
+      "cd": true,
+      "vinyl": false
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "KIDS SEE GHOSTS",
+      "Kanye West",
+      "Kid Cudi"
+    ],
+    "albumLink": "https://open.spotify.com/album/6pwuKxMUkNg673KETsXPUV?si=JQmuAZ30Tv2bigMFapImag",
+    "albumName": "KIDS SEE GHOSTS",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739989519616,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273013c00ee367dd85396f79c82",
+    "releaseDate": "2018-06-08",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "¥$",
+      "Kanye West",
+      "Ty Dolla $ign"
+    ],
+    "albumLink": "https://open.spotify.com/album/0v9QGZDE2msGl8zAlXKP93?si=pW2pb0TjR0yYvDXiG5zqSw",
+    "albumName": "VULTURES 1",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739988282351,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273b2e4a1ea8a6708fc23f26e4a",
+    "releaseDate": "2024-02-09",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": "Kanye West",
+    "albumName": "Bully",
+    "id": 1739988559581,
+    "imageUrl": "https://i.dailymail.co.uk/1s/2024/10/23/20/91201043-13993711-image-a-41_1729710779180.jpg",
+    "releaseDate": "2025-01-01",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Tyler, The Creator"
+    ],
+    "albumLink": "https://open.spotify.com/album/40QTqOBBxCEIQlLNdSjFQB?si=acnQ9aQVQt6uzngrlvYF1g",
+    "albumName": "Wolf",
+    "id": 1739988377978,
+    "imageUrl": "https://m.media-amazon.com/images/I/81Bc1jyUXuL._UF1000,1000_QL80_.jpg",
+    "releaseDate": "2013-04-01",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Tyler, The Creator"
+    ],
+    "albumLink": "https://open.spotify.com/album/1GG6U2SSJPHO6XsFiBzxYv?si=xP0FaHJGSjK7meLTcdM2yA",
+    "albumName": "CALL ME IF YOU GET LOST: The Estate Sale",
+    "id": 1739987155658,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273aa95a399fd30fbb4f6f59fca",
+    "releaseDate": "2023-03-31",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": "Tyler, The Creator",
+    "albumLink": "https://open.spotify.com/album/0U28P0QVB1QRxpqp5IHOlH?si=dYXUY82kTiK1nIe0lEeOdA",
+    "albumName": "CHROMAKOPIA",
+    "genres": "",
+    "id": 1739988451149,
+    "imageUrl": "https://images.genius.com/cc590caab2b15b01c799d2a6031fac11.1000x1000x1.png",
+    "releaseDate": "2024-11-28",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "JPEGMAFIA"
+    ],
+    "albumLink": "https://open.spotify.com/album/55lsRqfR4SpMeYFr3neQ7S?si=yFNIhONMRF-f1E3jJR5KNg",
+    "albumName": "I LAY DOWN MY LIFE FOR YOU (DIRECTORS CUT)",
+    "genres": [
+      "experimental hip hop",
+      "alternative hip hop",
+      "experimental"
+    ],
+    "id": 1739987952574,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27304f759f67c89aa89745ed583",
+    "releaseDate": "2025-02-03",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "MF DOOM"
+    ],
+    "albumLink": "https://open.spotify.com/album/1UcS2nqUhxrZjrBZ3tHk2N?si=KcDnfrO7R5S89JA7T_KltA",
+    "albumName": "MM..FOOD",
+    "genres": [
+      "experimental hip hop",
+      "east coast hip hop",
+      "alternative hip hop",
+      "jazz rap"
+    ],
+    "id": 1739988679384,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27352f194d02c39909d1b284799",
+    "releaseDate": "2004-11-16",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Yeat"
+    ],
+    "albumLink": "https://open.spotify.com/album/70CmTAk7pocCYr4lwuDtOc?si=f4QoZDxmQ9Cro1LFJbRQrA",
+    "albumName": "LYFESTYLE",
+    "genres": [
+      "rage rap"
+    ],
+    "id": 1739988718913,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2738fd4ee592690d0a94caa0045",
+    "releaseDate": "2024-10-18",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Metro Boomin",
+      "21 Savage"
+    ],
+    "albumLink": "https://open.spotify.com/album/3IO8IPjwXuzPJnoaqkwYrj?si=VlhD9mDtQOaLUyiILwrbfg",
+    "albumName": "NOT ALL HEROES WEAR CAPES (Deluxe)",
+    "id": 1739988865857,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2732887f8c05b5a9f1cb105be29",
+    "releaseDate": "2018-11-06",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Metro Boomin"
+    ],
+    "albumLink": "https://open.spotify.com/album/7txGsnDSqVMoRl6RQ9XyZP?si=mNPAjXhiS3-YQoit7YNzEw",
+    "albumName": "HEROES & VILLAINS",
+    "id": 1739989390671,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273c4fee55d7b51479627c31f89",
+    "releaseDate": "2022-12-02",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "KXLLSWXTCH"
+    ],
+    "albumLink": "https://open.spotify.com/album/4dFW8b4h1IIKr5Un1NaNSI?si=Xna6OuzETuGReowSpJCIcw",
+    "albumName": "THE WALLS HAVE EYES",
+    "genres": [
+      "dark trap"
+    ],
+    "id": 1739989633400,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273a9b89585cc94a3bd1ef1ecd7",
+    "releaseDate": "2023-02-17",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Lil Tecca"
+    ],
+    "albumLink": "https://open.spotify.com/album/6uWva3kfeqqVIsNAJ2MmeL?si=uUWy-EANQGu_CHVULLD_6A",
+    "albumName": "PLAN A",
+    "genres": [
+      "melodic rap",
+      "rap"
+    ],
+    "id": 1739989681008,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273e55a3924103c132fd3fdc480",
+    "releaseDate": "2024-09-20",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Frank Ocean"
+    ],
+    "albumLink": "https://open.spotify.com/album/3mH6qwIy9crq0I9YQbOuDf?si=s15xmxdBTRGvTVRN5JYFLg",
+    "albumName": "Blonde",
+    "id": 1739989744570,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273c5649add07ed3720be9d5526",
+    "releaseDate": "2016-08-20",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Frank Ocean"
+    ],
+    "albumLink": "https://open.spotify.com/album/392p3shh2jkxUxY2VHvlH8?si=5tfnuiOdQoqeYymTAPcUJA",
+    "albumName": "channel ORANGE",
+    "id": 1739989790095,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2737aede4855f6d0d738012e2e5",
+    "releaseDate": "2012-07-10",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Playboi Carti"
+    ],
+    "albumLink": "https://open.spotify.com/album/2QRedhP5RmKJiJ1i8VgDGR?si=aH8jxkM7T668JdK-oOJa9A",
+    "albumName": "Whole Lotta Red",
+    "genres": [
+      "rage rap"
+    ],
+    "id": 1739990055244,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27398ea0e689c91f8fea726d9bb",
+    "releaseDate": "2020-12-25",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kult"
+    ],
+    "albumLink": "https://open.spotify.com/album/4G5x7bVzIa09nPgdPEpokm?si=qVto8OlETnmPFICDNl2o4Q",
+    "albumName": "Spokojnie",
+    "id": 1739990121383,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273ee0b56433f0a61c6b5a3c20e",
+    "releaseDate": "1988",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kult"
+    ],
+    "albumLink": "https://open.spotify.com/album/7a8sdaDePrhJa6T5akSCa7?si=1mhMy-EzREq61aWa8WdbUw",
+    "albumName": "Kult",
+    "id": 1739990208183,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273689bccfa3ae7394debcc7c00",
+    "releaseDate": "1987",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kanye West"
+    ],
+    "albumLink": "https://open.spotify.com/album/0FgZKfoU2Br5sHOfvZKTI9?si=ndNy4fa-QaePcwkWWQdRiQ",
+    "albumName": "JESUS IS KING",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739990250329,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2731bb797bbfe2480650b6c2964",
+    "releaseDate": "2019-10-25",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Steve Lacy"
+    ],
+    "albumLink": "https://open.spotify.com/album/3Ks0eeH0GWpY4AU20D5HPD?si=QzfhQls8S5WETJ8GGCE2dA",
+    "albumName": "Gemini Rights",
+    "id": 1739990292101,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27368968350c2550e36d96344ee",
+    "releaseDate": "2022-07-15",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Travis Scott"
+    ],
+    "albumLink": "https://open.spotify.com/album/42WVQWuf1teDysXiOupIZt?si=AyHlyHYySnebQkOjzoosZw",
+    "albumName": "Birds In The Trap Sing McKnight",
+    "genres": [
+      "rap"
+    ],
+    "id": 1739990336359,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b273f54b99bf27cda88f4a7403ce",
+    "releaseDate": "2016-09-16",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kendrick Lamar"
+    ],
+    "albumLink": "https://open.spotify.com/album/79ONNoS4M9tfIA1mYLBYVX?si=7sqWH5oTQ9CaNJ2BCLoeRg",
+    "albumName": "Mr. Morale & The Big Steppers",
+    "genres": [
+      "hip hop",
+      "west coast rap"
+    ],
+    "id": 1739990393642,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b2732e02117d76426a08ac7c174f",
+    "releaseDate": "2022-05-13",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Kendrick Lamar"
+    ],
+    "albumLink": "https://open.spotify.com/album/748dZDqSZy6aPXKcI9H80u?si=1gdtMTYST-uv3PMlaUo3Pg",
+    "albumName": "good kid, m.A.A.d city (Deluxe)",
+    "genres": [
+      "hip hop",
+      "west coast rap"
+    ],
+    "id": 1739990446226,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27378de8b28de36a74afc0348b5",
+    "releaseDate": "2012-10-22",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": true
+  },
+  {
+    "albumArtists": [
+      "Brent Faiyaz"
+    ],
+    "albumLink": "https://open.spotify.com/album/0PHMNbcgHfzSUALlfk7wGg",
+    "albumName": "WASTELAND",
+    "genres": [
+      "r&b"
+    ],
+    "id": 1758731030071.5732,
+    "imageUrl": "https://i.scdn.co/image/ab67616d0000b27369f63a842ea91ca7c522593a",
+    "releaseDate": "2022-07-08",
+    "types": {
+      "cd": false,
+      "vinyl": true
+    },
+    "wanted": false
+  }
+]
