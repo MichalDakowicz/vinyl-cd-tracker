@@ -25,26 +25,31 @@
     <body>
         <div class="container">
             <div class="header">
-                <h1>Music Tracker</h1>
-                <div class="header-buttons">
-                    <button id="statsButton" title="Statistics">
-                        <img src="img/stats.svg" alt="Statistics" />
-                    </button>
-                    <button id="viewModeButton" title="Toggle View">
-                        <img src="img/grid.svg" alt="Toggle View" />
-                    </button>
-                    <button id="reorderButton" title="Reorder Items (List)">
-                        <img src="img/reorder.svg" alt="Reorder" />
-                    </button>
-                    <button id="exportButton" title="Export Data">
-                        <img src="img/export.svg" alt="Export" />
-                    </button>
-                    <button id="importButton" title="Import Data">
-                        <img src="img/import.svg" alt="Import" />
-                    </button>
-                    <button id="shareButton" title="Share Collection">
-                        <img src="img/link.svg" alt="Share" />
-                    </button>
+                <div class="header-top">
+                    <h1>Music Tracker</h1>
+                </div>
+                <div class="header-bottom">
+                    <div class="header-buttons">
+                        <button id="statsButton" title="Statistics">
+                            <img src="img/stats.svg" alt="Statistics" />
+                        </button>
+                        <button id="viewModeButton" title="Toggle View">
+                            <img src="img/grid.svg" alt="Toggle View" />
+                        </button>
+                        <button id="reorderButton" title="Reorder Items (List)">
+                            <img src="img/reorder.svg" alt="Reorder" />
+                        </button>
+
+                        <button id="exportButton" title="Export Data">
+                            <img src="img/export.svg" alt="Export" />
+                        </button>
+                        <button id="importButton" title="Import Data">
+                            <img src="img/import.svg" alt="Import" />
+                        </button>
+                        <button id="shareButton" title="Share Collection">
+                            <img src="img/link.svg" alt="Share" />
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="search">
@@ -395,6 +400,110 @@
                 <div class="modal-actions">
                     <button id="saveReorder">Save Order</button>
                     <button id="cancelReorder" class="cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Sharing Modal -->
+        <div id="shareModal" class="modal">
+            <div class="modal-content share-modal-content">
+                <span class="close">&times;</span>
+                <h2>Share Your Collection</h2>
+
+                <div class="share-options">
+                    <div class="share-section">
+                        <h3>🔗 Share Link</h3>
+                        <div class="share-url-container">
+                            <input
+                                type="text"
+                                id="shareUrlInput"
+                                readonly
+                                placeholder="Generating share link..."
+                            />
+                            <button id="copyShareUrl" class="copy-btn">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="share-description">
+                            Anyone with this link can view your collection
+                        </p>
+                    </div>
+
+                    <div class="share-section">
+                        <h3>⏰ Share Options</h3>
+                        <div class="share-duration">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="shareDuration"
+                                    value="24"
+                                    checked
+                                />
+                                24 hours (recommended)
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="shareDuration"
+                                    value="168"
+                                />
+                                1 week
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="shareDuration"
+                                    value="permanent"
+                                />
+                                Permanent
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="share-section">
+                        <h3>📊 QR Code</h3>
+                        <div class="qr-container">
+                            <img
+                                id="qrCode"
+                                src=""
+                                alt="QR Code"
+                                style="display: none"
+                            />
+                            <button id="generateQR" class="generate-qr-btn">
+                                Generate QR Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="share-section">
+                        <h3>💾 Export Collection</h3>
+                        <div class="export-buttons">
+                            <button id="exportJSON" class="export-btn">
+                                <img src="img/export.svg" alt="Export" /> Export
+                                as JSON
+                            </button>
+                            <button id="exportCSV" class="export-btn">
+                                <img src="img/export.svg" alt="Export" /> Export
+                                as CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="share-stats" id="shareStats" style="display: none">
+                    <h3>📈 Share Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value" id="shareViews">0</span>
+                            <span class="stat-label">Views</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="lastViewed"
+                                >Never</span
+                            >
+                            <span class="stat-label">Last Viewed</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

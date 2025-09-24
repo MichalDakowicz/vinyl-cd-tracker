@@ -294,6 +294,45 @@ body.dark-mode select {
         border-radius: 0;
         border: none;
     }
+
+    /* Delete modal should be smaller and centered on mobile */
+    #deleteConfirmModal .modal-content {
+        width: 90%;
+        height: auto;
+        max-width: 400px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        margin: auto;
+        padding: 20px;
+    }
+
+    /* Adjust delete preview for mobile */
+    #deleteConfirmModal .delete-preview {
+        margin: 15px 0;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    #deleteConfirmModal .delete-preview img {
+        width: 60px;
+        height: 60px;
+        flex-shrink: 0;
+    }
+
+    /* Stack modal actions on mobile */
+    #deleteConfirmModal .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    #deleteConfirmModal .modal-actions button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
 }
 
 .close {
@@ -678,9 +717,38 @@ h1 {
 
 .header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     margin-bottom: 10px;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.header-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Desktop layout - side by side */
+@media screen and (min-width: 601px) {
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .header-top {
+        margin-bottom: 0;
+    }
+
+    .header-bottom {
+        justify-content: flex-end;
+    }
 }
 
 .header-buttons {
@@ -720,7 +788,11 @@ h1 {
 }
 
 .shared-banner {
-    background: linear-gradient(135deg, var(--primary-light), var(--accent-light-medium));
+    background: linear-gradient(
+        135deg,
+        var(--primary-light),
+        var(--accent-light-medium)
+    );
     border: 1px solid var(--primary-color);
     border-radius: 8px;
     padding: 12px 16px;
@@ -835,7 +907,11 @@ h1 {
 }
 
 body.dark-mode .shared-banner {
-    background: linear-gradient(135deg, var(--dark-gray-light), var(--dark-gray-medium));
+    background: linear-gradient(
+        135deg,
+        var(--dark-gray-light),
+        var(--dark-gray-medium)
+    );
     border-color: var(--primary-color);
 }
 
@@ -1214,6 +1290,20 @@ body.dark-mode #results.list-view .card .type-badge {
     user-select: none;
 }
 
+/* Disable dragging in shared view */
+body.shared-view .card {
+    cursor: default;
+    user-select: text;
+}
+
+body.shared-view .card[draggable] {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+}
+
 .card.dragging {
     opacity: 0.8;
     transform: scale(1.02);
@@ -1305,6 +1395,30 @@ body.dark-mode .card.highlight {
         padding: 5px;
     }
 
+    /* Enhanced touch targets for mobile shared collection mode */
+    .card .actions button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 12px;
+    }
+
+    .card .actions button img {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Grid view mobile enhancements */
+    #results.grid-view .card .actions button {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 10px;
+    }
+
+    #results.grid-view .card .actions button img {
+        width: 18px;
+        height: 18px;
+    }
+
     #results.list-view .card img {
         width: 120px;
         height: 120px;
@@ -1320,9 +1434,7 @@ body.dark-mode .card.highlight {
         font-size: 0.8rem;
     }
 
-    .card .actions .linkButton {
-        display: none;
-    }
+    /* Remove the display: none rule for linkButton to make it visible in shared collections */
 }
 
 .date-input-container {
@@ -2316,6 +2428,22 @@ body.dark-mode .reorder-list-container {
     border-radius: 4px;
     margin-bottom: 5px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    cursor: grab;
+    transition: all 0.2s ease;
+}
+
+.reorder-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.reorder-item:active {
+    cursor: grabbing;
+}
+
+.reorder-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
 }
 .reorder-item:last-child {
     margin-bottom: 0;
@@ -2476,31 +2604,73 @@ body.dark-mode #loginContainer {
 }
 
 #logoutButton {
-    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
     font-size: 0.9rem;
     font-weight: 500;
     background-color: #e53935;
+    color: white;
     border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.2);
+    min-width: 100px;
+    justify-content: center;
 }
 
 #logoutButton img {
-    width: 26px;
-    height: 26px;
+    width: 18px;
+    height: 18px;
     filter: invert(1);
+    transition: transform 0.2s ease;
+}
+
+#logoutButton .logout-text {
+    font-weight: 500;
+    letter-spacing: 0.02em;
 }
 
 #logoutButton:hover {
     background-color: #c62828;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(229, 57, 53, 0.3);
+}
+
+#logoutButton:hover img {
+    transform: scale(1.1);
 }
 
 #logoutButton:active {
     transform: translateY(0px);
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.2);
+}
+
+#logoutButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#logoutButton:disabled:hover {
+    background-color: #e53935;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.2);
+}
+
+#logoutButton .loading-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 body.dark-mode #loginButton {
@@ -2509,6 +2679,21 @@ body.dark-mode #loginButton {
 
 body.dark-mode #loginButton:hover {
     background-color: #0056b3;
+}
+
+body.dark-mode #logoutButton {
+    background-color: #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+body.dark-mode #logoutButton:hover {
+    background-color: #b02a37;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+body.dark-mode #logoutButton:disabled:hover {
+    background-color: #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
 }
 
 body.dark-mode .auth-button {
@@ -2522,6 +2707,27 @@ body.dark-mode .auth-button:hover {
 @media screen and (max-width: 600px) {
     h1 {
         font-size: 1.5rem;
+    }
+
+    /* Mobile header layout */
+    .header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .header-top {
+        justify-content: center;
+        margin-bottom: 0;
+    }
+
+    .header-bottom {
+        justify-content: center;
+    }
+
+    .header-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
     }
     #loginContainer {
         padding: 30px 15px;
@@ -2686,5 +2892,489 @@ body {
 
     body {
         padding-bottom: 70px;
+    }
+}
+/* Enhanced Sharing Modal Styles */
+.share-modal-content {
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.share-section {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-background);
+}
+
+.share-section h3 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.share-url-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.share-url-container input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-background);
+    color: var(--text-color);
+}
+
+.copy-btn,
+.generate-qr-btn,
+.export-btn {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.copy-btn:hover,
+.generate-qr-btn:hover,
+.export-btn:hover {
+    background: var(--primary-dark);
+}
+
+.share-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.share-duration {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.share-duration label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0;
+}
+
+.share-duration input[type="radio"] {
+    margin: 0;
+}
+
+.qr-container {
+    text-align: center;
+}
+
+.qr-container img {
+    max-width: 200px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.share-stats {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--accent-light);
+    border-radius: 8px;
+}
+
+.share-stats .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.share-stats .stat-item {
+    text-align: center;
+}
+
+.share-stats .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.share-stats .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Dark mode styles for sharing modal */
+body.dark-mode .share-section {
+    background: var(--dark-gray-light);
+    border-color: var(--dark-gray-medium);
+}
+
+body.dark-mode .share-url-container input {
+    background: var(--dark-gray-medium);
+    border-color: var(--dark-gray-light);
+    color: var(--white);
+}
+
+body.dark-mode .share-stats {
+    background: var(--dark-gray-medium);
+}
+
+@media (max-width: 768px) {
+    .share-modal-content {
+        margin: 1rem;
+        max-height: 90vh;
+    }
+
+    .export-buttons {
+        flex-direction: column;
+    }
+
+    .share-url-container {
+        flex-direction: column;
+    }
+
+    .share-duration {
+        gap: 0.75rem;
+    }
+
+    /* Mobile layout for shared banner */
+    .shared-banner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .shared-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .shared-actions {
+        align-self: center;
+    }
+}
+
+.artist-list-header {
+    background: var(--accent-light);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.artist-list-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.artist-drag-list {
+    min-height: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    background: var(--background-color);
+    transition: border-color 0.3s ease;
+}
+
+.artist-drag-list.drag-over {
+    border-color: var(--primary-color);
+    background: var(--accent-light);
+}
+
+.artist-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.artist-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+    border-color: var(--primary-color);
+}
+
+.artist-item.dragging {
+    opacity: 0.8;
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px var(--shadow-dark);
+    cursor: grabbing;
+    z-index: 1000;
+}
+
+.artist-item.drag-target {
+    border: 2px dashed var(--primary-color);
+    background: var(--accent-light);
+}
+
+.artist-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.artist-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.artist-details {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.album-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.collaborative-indicator {
+    background: var(--accent-medium);
+    color: var(--primary-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.drag-handle {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: grab;
+    padding: 8px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.artist-item:hover .drag-handle {
+    opacity: 1;
+}
+
+.drag-handle::before {
+    content: "⋮⋮";
+    font-size: 16px;
+    line-height: 1;
+    color: var(--text-color);
+}
+
+.sorting-controls {
+    background: var(--shadow-light);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.sorting-controls h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.sorting-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.sorting-buttons button {
+    padding: 8px 12px;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.sorting-buttons button:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.sorting-buttons button:active {
+    transform: translateY(0);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-actions button.primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.modal-actions button.primary:hover {
+    background: var(--primary-hover-color);
+    transform: translateY(-1px);
+}
+
+.modal-actions button.cancel {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.modal-actions button.cancel:hover {
+    background: var(--shadow-light);
+    border-color: var(--text-color);
+}
+
+/* Loading state */
+.artist-drag-list.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Tablet adjustments */
+@media screen and (min-width: 601px) and (max-width: 1024px) {
+    .sorting-buttons {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Accessibility improvements */
+.artist-item:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.sorting-buttons button:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .artist-item,
+    .sorting-buttons button,
+    .modal-actions button {
+        transition: none;
+    }
+
+    .artist-item:hover {
+        transform: none;
+    }
+
+    .sorting-buttons button:hover,
+    .modal-actions button.primary:hover {
+        transform: none;
+    }
+
+    .loading-spinner {
+        animation: none;
+    }
+}
+/* Responsive logout button for mobile */
+@media (max-width: 768px) {
+    #logoutButton {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        min-width: 80px;
+        gap: 6px;
+    }
+
+    #logoutButton img {
+        width: 16px;
+        height: 16px;
+    }
+
+    #logoutButton .logout-text {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    #logoutButton {
+        padding: 8px;
+        min-width: 32px;
+        min-height: 32px;
+        border-radius: 50%;
+    }
+
+    #logoutButton .logout-text {
+        display: none;
     }
 }

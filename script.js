@@ -19,7 +19,7 @@ let isSharedView = false;
 
 // Check for shared collection in URL parameters
 const urlParams = new URLSearchParams(window.location.search);
-const shareId = urlParams.get('share');
+const shareId = urlParams.get("share");
 
 if (shareId) {
     isSharedView = true;
@@ -229,9 +229,13 @@ function showAppContent(user) {
         userAuthStatus.innerHTML = "";
         const logoutButton = document.createElement("button");
         logoutButton.id = "logoutButton";
-        logoutButton.innerHTML =
-            "<img src='" + getIconPath("logout") + "' alt='Logout'>";
-        logoutButton.addEventListener("click", handleLogout);
+        logoutButton.innerHTML = `
+            <img src="${getIconPath("logout")}" alt="Logout">
+            <span class="logout-text">Logout</span>
+        `;
+        logoutButton.title = "Sign out of your account";
+        logoutButton.setAttribute("aria-label", "Sign out of your account");
+        logoutButton.addEventListener("click", showLogoutConfirmation);
 
         userAuthStatus.appendChild(logoutButton);
     }
@@ -246,19 +250,49 @@ async function handleLogin() {
     }
 }
 
+function showLogoutConfirmation() {
+    const confirmLogout = confirm("Are you sure you want to sign out?");
+    if (confirmLogout) {
+        handleLogout();
+    }
+}
+
 async function handleLogout() {
     try {
+        // Show loading state
+        const logoutButton = document.querySelector("#logoutButton");
+        if (logoutButton) {
+            logoutButton.disabled = true;
+            logoutButton.innerHTML = `
+                <img src="${getIconPath(
+                    "loading"
+                )}" alt="Signing out..." class="loading-icon">
+                <span class="logout-text">Signing out...</span>
+            `;
+        }
+
         await signOut(auth);
+        notifyUser("Successfully signed out", "success");
     } catch (error) {
         console.error("Logout failed:", error);
         notifyUser(`Logout failed: ${error.message}`, "error");
+
+        // Restore button state on error
+        const logoutButton = document.querySelector("#logoutButton");
+        if (logoutButton) {
+            logoutButton.disabled = false;
+            logoutButton.innerHTML = `
+                <img src="${getIconPath("logout")}" alt="Logout">
+                <span class="logout-text">Logout</span>
+            `;
+        }
     }
 }
 
 async function loadSharedCollection(shareId) {
     try {
         // Check if Firebase is available
-        if (typeof database === 'undefined') {
+        if (typeof database === "undefined") {
             // For demo/testing purposes when Firebase is not available
             const mockSharedData = {
                 items: [
@@ -271,7 +305,8 @@ async function loadSharedCollection(shareId) {
                         types: { vinyl: true, cd: false },
                         wanted: false,
                         imageUrl: "img/default.png",
-                        albumLink: "https://open.spotify.com/album/4LH4d3cOWNNsVw41Gqt2kv"
+                        albumLink:
+                            "https://open.spotify.com/album/4LH4d3cOWNNsVw41Gqt2kv",
                     },
                     {
                         id: 2,
@@ -282,7 +317,8 @@ async function loadSharedCollection(shareId) {
                         types: { vinyl: true, cd: true },
                         wanted: false,
                         imageUrl: "img/default.png",
-                        albumLink: "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN"
+                        albumLink:
+                            "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN",
                     },
                     {
                         id: 3,
@@ -292,38 +328,41 @@ async function loadSharedCollection(shareId) {
                         genres: ["Jazz"],
                         types: { vinyl: true, cd: false },
                         wanted: true,
-                        imageUrl: "img/default.png"
-                    }
+                        imageUrl: "img/default.png",
+                    },
                 ],
                 metadata: {
                     sharedBy: "Demo User",
                     sharedAt: new Date().toISOString(),
-                    totalItems: 3
-                }
+                    totalItems: 3,
+                },
             };
-            
+
             items = mockSharedData.items;
             showSharedCollection(mockSharedData.metadata);
             renderUI();
             return;
         }
-        
+
         const shareRef = ref(database, `public-shares/${shareId}`);
         const snapshot = await get(shareRef);
-        
+
         if (snapshot.exists()) {
             const shareData = snapshot.val();
             items = shareData.items || [];
-            
+
             // Show shared collection UI
             showSharedCollection(shareData.metadata);
             renderUI();
         } else {
-            notifyUser("Shared collection not found or may have expired.", "error");
+            notifyUser(
+                "Shared collection not found or may have expired.",
+                "error"
+            );
             // Remove share parameter and reload
             const url = new URL(window.location);
-            url.searchParams.delete('share');
-            window.history.replaceState({}, '', url);
+            url.searchParams.delete("share");
+            window.history.replaceState({}, "", url);
             isSharedView = false;
         }
     } catch (error) {
@@ -337,10 +376,14 @@ function showSharedCollection(metadata) {
     // Hide login container and show app content
     if (loginContainer) loginContainer.style.display = "none";
     if (appContent) appContent.style.display = "block";
-    
+
+    // Add shared view class to body for CSS styling
+    document.body.classList.add("shared-view");
+
     // Show shared collection banner
     const header = document.querySelector(".header");
-    if (header && !document.querySelector(".shared-banner")) {
+    const headerBottom = document.querySelector(".header-bottom");
+    if (header && headerBottom && !document.querySelector(".shared-banner")) {
         const banner = document.createElement("div");
         banner.className = "shared-banner";
         banner.innerHTML = `
@@ -353,38 +396,32 @@ function showSharedCollection(metadata) {
                 <button id="viewOwnCollection" class="view-own-btn">View My Collection</button>
             </div>
         `;
-        header.appendChild(banner);
-        
+        // Insert banner between header-top and header-bottom
+        header.insertBefore(banner, headerBottom);
+
         // Add click handler for "View My Collection" button
         const viewOwnBtn = banner.querySelector("#viewOwnCollection");
         if (viewOwnBtn) {
             viewOwnBtn.addEventListener("click", () => {
                 const url = new URL(window.location);
-                url.searchParams.delete('share');
+                url.searchParams.delete("share");
                 window.location = url.toString();
             });
         }
     }
-    
+
     // Hide action buttons that shouldn't be available in shared view
-    const actionsToHide = ["#addItemButton", "#shareButton"];
-    actionsToHide.forEach(selector => {
+    const actionsToHide = ["#addItemButton", "#shareButton", "#reorderButton"];
+    actionsToHide.forEach((selector) => {
         const element = document.querySelector(selector);
         if (element) element.style.display = "none";
     });
-    
-    // Update user auth status
-    if (userAuthStatus) {
-        userAuthStatus.innerHTML = `
-            <span class="shared-status">👁️ Viewing shared collection</span>
-        `;
-    }
 }
 
 onAuthStateChanged(auth, async (user) => {
     // Skip auth flow if viewing shared collection
     if (isSharedView) return;
-    
+
     if (user) {
         currentUser = user;
         userItemsRef = ref(database, `users/${currentUser.uid}/items`);
@@ -473,6 +510,11 @@ function renderUI() {
         typeof genresTagInput.updateSuggestions === "function"
     )
         genresTagInput.updateSuggestions();
+
+    // Dispatch custom event for items update
+    window.dispatchEvent(
+        new CustomEvent("itemsUpdated", { detail: { items } })
+    );
 }
 
 function formatDate(dateString) {
@@ -557,20 +599,24 @@ function renderItems(itemsToRender) {
             </div>
             <div class="actions">
                 ${linkButtonHTML}
-                ${!isSharedView ? `
+                ${
+                    !isSharedView
+                        ? `
                 <button class="editButton" data-id="${item.id}">
                     <img src="${getIconPath("edit")}" alt="Edit">
                 </button>
                 <button class="removeButton" data-id="${item.id}">
                     <img src="${getIconPath("delete")}" alt="Remove">
                 </button>
-                ` : ''}
+                `
+                        : ""
+                }
             </div>
         `;
         newItemElement.setAttribute("data-index", index);
         newItemElement.setAttribute("data-id", item.id);
         resultsContainer.appendChild(newItemElement);
-    }); 
+    });
     if (isGridView && !isSharedView) {
         const addButtonCard = document.createElement("div");
         addButtonCard.classList.add("card", "add-button-card");
@@ -593,7 +639,8 @@ function renderItems(itemsToRender) {
             window.open(button.dataset.url, "_blank");
         });
     });
-    if (typeof initDragAndDrop === "function") initDragAndDrop();
+    if (typeof initDragAndDrop === "function" && !isSharedView)
+        initDragAndDrop();
 }
 
 const searchInput = document.querySelector("#search");
@@ -660,7 +707,15 @@ async function refreshItems() {
     if (typeof updateStats === "function") updateStats();
     if (typeof updateArtistsList === "function") updateArtistsList();
     if (typeof updateGenresList === "function") updateGenresList();
+
+    // Dispatch custom event for items update
+    window.dispatchEvent(
+        new CustomEvent("itemsUpdated", { detail: { items } })
+    );
 }
+
+// Make refreshItems available globally
+window.refreshItems = refreshItems;
 
 let isEditing = false;
 let currentEditingId = null;
@@ -1203,40 +1258,85 @@ if (importButton) {
 }
 
 const shareButton = document.querySelector("#shareButton");
+const shareModal = document.querySelector("#shareModal");
 
 if (shareButton) {
-    shareButton.addEventListener("click", async () => {
+    shareButton.addEventListener("click", () => {
         if (!currentUser) {
             notifyUser("Please log in to share your collection.", "error");
             return;
         }
 
         if (items.length === 0) {
-            notifyUser("Your collection is empty. Add some items first!", "error");
+            notifyUser(
+                "Your collection is empty. Add some items first!",
+                "error"
+            );
             return;
         }
 
+        // Show the enhanced sharing modal
+        if (shareModal) {
+            shareModal.classList.add("show");
+            initializeShareModal();
+        }
+    });
+}
+
+// Enhanced sharing modal functionality
+function initializeShareModal() {
+    const shareUrlInput = document.querySelector("#shareUrlInput");
+    const copyShareUrlBtn = document.querySelector("#copyShareUrl");
+    const generateQRBtn = document.querySelector("#generateQR");
+    const qrCodeImg = document.querySelector("#qrCode");
+    const exportJSONBtn = document.querySelector("#exportJSON");
+    const exportCSVBtn = document.querySelector("#exportCSV");
+
+    let currentShareUrl = "";
+
+    // Generate share link
+    generateShareLink();
+
+    async function generateShareLink() {
         try {
-            shareButton.disabled = true;
-            const shareButtonIcon = shareButton.querySelector("img");
-            if (shareButtonIcon) shareButtonIcon.src = getIconPath("loading");
+            shareUrlInput.value = "Generating share link...";
+
+            // Get selected duration
+            const selectedDuration =
+                document.querySelector('input[name="shareDuration"]:checked')
+                    ?.value || "24";
 
             // Check if Firebase is available
-            if (typeof database === 'undefined' || !database) {
-                throw new Error("Firebase database not available. Please check your internet connection and try again.");
+            if (typeof database === "undefined" || !database) {
+                throw new Error("Firebase database not available");
             }
 
             // Generate a unique share ID
-            const shareId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-            
+            const shareId =
+                Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+            // Calculate expiration if not permanent
+            let expiresAt = null;
+            if (selectedDuration !== "permanent") {
+                const expiration = new Date();
+                expiration.setHours(
+                    expiration.getHours() + parseInt(selectedDuration)
+                );
+                expiresAt = expiration.toISOString();
+            }
+
             // Create shareable collection data
             const shareData = {
                 items: items,
                 metadata: {
-                    sharedBy: currentUser.displayName || currentUser.email || "Anonymous",
+                    sharedBy:
+                        currentUser.displayName ||
+                        currentUser.email ||
+                        "Anonymous",
                     sharedAt: new Date().toISOString(),
-                    totalItems: items.length
-                }
+                    totalItems: items.length,
+                    expiresAt: expiresAt,
+                },
             };
 
             // Store in Firebase under public shares
@@ -1244,42 +1344,158 @@ if (shareButton) {
             await set(shareRef, shareData);
 
             // Generate shareable URL
-            const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareId}`;
-
-            // Copy to clipboard and show notification
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(shareUrl);
-                notifyUser("Share URL copied to clipboard! Anyone with this link can view your collection.", "success");
-            } else {
-                // Fallback for browsers that don't support clipboard API
-                notifyUser(`Share URL: ${shareUrl} (Copy this link to share your collection)`, "success");
-            }
-            
+            currentShareUrl = `${window.location.origin}${window.location.pathname}?share=${shareId}`;
+            shareUrlInput.value = currentShareUrl;
         } catch (error) {
-            console.error("Error sharing collection:", error);
-            
-            // Provide specific error messages based on the error type
-            let errorMessage = "Failed to share collection. ";
-            
-            if (error.message && error.message.includes("Firebase database not available")) {
-                errorMessage += "Database connection failed. Please check your internet connection and try again.";
-            } else if (error.code === 'PERMISSION_DENIED') {
-                errorMessage += "Permission denied. Please make sure you're logged in and try again.";
-            } else if (error.code === 'NETWORK_ERROR' || error.message.includes('network')) {
-                errorMessage += "Network error. Please check your internet connection and try again.";
-            } else if (error.name === 'NotAllowedError') {
-                errorMessage += "Clipboard access denied. The share URL was generated but could not be copied automatically.";
+            console.error("Error generating share link:", error);
+            shareUrlInput.value = "Error generating link";
+
+            if (error.code === "PERMISSION_DENIED") {
+                notifyUser(
+                    "Database permissions need updating. Please update Firebase rules.",
+                    "error"
+                );
             } else {
-                errorMessage += "Please try again or contact support if the problem persists.";
+                notifyUser(
+                    "Failed to generate share link. Try the export options below.",
+                    "error"
+                );
             }
-            
-            notifyUser(errorMessage, "error");
-        } finally {
-            shareButton.disabled = false;
-            const shareButtonIcon = shareButton.querySelector("img");
-            if (shareButtonIcon) shareButtonIcon.src = getIconPath("link");
         }
-    });
+    }
+
+    // Copy share URL
+    if (copyShareUrlBtn) {
+        copyShareUrlBtn.addEventListener("click", async () => {
+            if (!currentShareUrl) return;
+
+            try {
+                await navigator.clipboard.writeText(currentShareUrl);
+                notifyUser("Share URL copied to clipboard!", "success");
+                copyShareUrlBtn.textContent = "Copied!";
+                setTimeout(() => {
+                    copyShareUrlBtn.textContent = "Copy";
+                }, 2000);
+            } catch (error) {
+                notifyUser("Failed to copy to clipboard", "error");
+            }
+        });
+    }
+
+    // Generate QR Code
+    if (generateQRBtn) {
+        generateQRBtn.addEventListener("click", () => {
+            if (!currentShareUrl) return;
+
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                currentShareUrl
+            )}`;
+            qrCodeImg.src = qrApiUrl;
+            qrCodeImg.style.display = "block";
+            generateQRBtn.textContent = "QR Code Generated";
+        });
+    }
+
+    // Export functions
+    if (exportJSONBtn) {
+        exportJSONBtn.addEventListener("click", () => {
+            exportCollection("json");
+        });
+    }
+
+    if (exportCSVBtn) {
+        exportCSVBtn.addEventListener("click", () => {
+            exportCollection("csv");
+        });
+    }
+
+    // Export collection function
+    function exportCollection(format) {
+        const collectionData = {
+            items: items,
+            metadata: {
+                exportedBy:
+                    currentUser.displayName || currentUser.email || "Anonymous",
+                exportedAt: new Date().toISOString(),
+                totalItems: items.length,
+            },
+        };
+
+        let data, filename, mimeType;
+
+        if (format === "json") {
+            data = JSON.stringify(collectionData, null, 2);
+            filename = `music-collection-${Date.now()}.json`;
+            mimeType = "application/json";
+        } else if (format === "csv") {
+            const csvHeaders = [
+                "Album Name",
+                "Artists",
+                "Release Date",
+                "Genres",
+                "Vinyl",
+                "CD",
+                "Wanted",
+                "Link",
+            ];
+            const csvRows = items.map((item) => [
+                item.albumName || "",
+                Array.isArray(item.albumArtists)
+                    ? item.albumArtists.join("; ")
+                    : "",
+                item.releaseDate || "",
+                Array.isArray(item.genres) ? item.genres.join("; ") : "",
+                item.types?.vinyl ? "Yes" : "No",
+                item.types?.cd ? "Yes" : "No",
+                item.wanted ? "Yes" : "No",
+                item.albumLink || "",
+            ]);
+
+            data = [csvHeaders, ...csvRows]
+                .map((row) => row.map((field) => `"${field}"`).join(","))
+                .join("\n");
+            filename = `music-collection-${Date.now()}.csv`;
+            mimeType = "text/csv";
+        }
+
+        // Create and trigger download
+        const blob = new Blob([data], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = filename;
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+
+        notifyUser(
+            `Collection exported as ${format.toUpperCase()}!`,
+            "success"
+        );
+    }
+
+    // Duration change handler
+    document
+        .querySelectorAll('input[name="shareDuration"]')
+        .forEach((radio) => {
+            radio.addEventListener("change", () => {
+                if (radio.checked) {
+                    generateShareLink();
+                }
+            });
+        });
+}
+
+// Close modal functionality
+if (shareModal) {
+    const closeBtn = shareModal.querySelector(".close");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            shareModal.classList.remove("show");
+        });
+    }
 }
 
 function toggleViewMode() {
@@ -1896,6 +2112,7 @@ function populateReorderModal() {
         const listItem = document.createElement("div");
         listItem.classList.add("reorder-item");
         listItem.dataset.id = item.id;
+        listItem.draggable = true; // Make items draggable
         listItem.innerHTML = `
             <img src="${
                 item.imageUrl || "img/default.png"
@@ -1922,6 +2139,7 @@ function populateReorderModal() {
         reorderListContainer.appendChild(listItem);
     });
     updateReorderIcons();
+    initReorderDragAndDrop(); // Initialize drag and drop
 }
 function updateReorderIcons() {
     if (!reorderListContainer) return;
@@ -1942,6 +2160,71 @@ function updateReorderButtonStates() {
         item.querySelector(".reorder-down").disabled =
             index === itemsInList.length - 1;
     });
+}
+
+function initReorderDragAndDrop() {
+    if (!reorderListContainer) return;
+
+    let draggedElement = null;
+
+    reorderListContainer.addEventListener("dragstart", (e) => {
+        if (e.target.classList.contains("reorder-item")) {
+            draggedElement = e.target;
+            e.target.classList.add("dragging");
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/html", e.target.outerHTML);
+        }
+    });
+
+    reorderListContainer.addEventListener("dragend", (e) => {
+        if (e.target.classList.contains("reorder-item")) {
+            e.target.classList.remove("dragging");
+            draggedElement = null;
+            updateReorderButtonStates();
+        }
+    });
+
+    reorderListContainer.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+
+        if (!draggedElement) return;
+
+        const afterElement = getDragAfterElement(
+            reorderListContainer,
+            e.clientY
+        );
+        if (afterElement == null) {
+            reorderListContainer.appendChild(draggedElement);
+        } else {
+            reorderListContainer.insertBefore(draggedElement, afterElement);
+        }
+    });
+
+    reorderListContainer.addEventListener("drop", (e) => {
+        e.preventDefault();
+        updateReorderButtonStates();
+    });
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [
+        ...container.querySelectorAll(".reorder-item:not(.dragging)"),
+    ];
+
+    return draggableElements.reduce(
+        (closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        },
+        { offset: Number.NEGATIVE_INFINITY }
+    ).element;
 }
 
 if (reorderButton && reorderModal) {

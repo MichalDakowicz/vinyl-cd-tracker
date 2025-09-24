@@ -1,20 +1,16 @@
 # vinyl-cd-tracker
+
 A simple library-like website to hold information about your music collection
 
 ## Features
 
-- 📀 Track your vinyl records and CDs
-- 🔍 Search and filter your collection
-- 📊 Collection statistics and insights
-- 📱 Responsive design for mobile and desktop
-- 🌙 Dark mode support
-- 📥 Import/Export your collection data
-- 🔗 **Share your collection** with others via generated URLs
-- 🧪 **Test Mode** - Try the app without login ([test.html](test.html))
-
-## Test Mode
-
-Want to try the app without creating an account? Visit [test.html](test.html) for a demo version with sample data. No login required! [Learn more about test mode](TEST_MODE.md).
+-   📀 Track your vinyl records and CDs
+-   🔍 Search and filter your collection
+-   📊 Collection statistics and insights
+-   📱 Responsive design for mobile and desktop
+-   🌙 Dark mode support
+-   📥 Import/Export your collection data
+-   🔗 **Share your collection** with others via generated URLs
 
 ## Sharing Collections
 
@@ -26,9 +22,10 @@ The app now includes a sharing feature that allows you to share your music colle
 4. **View Collection**: Recipients can view your shared collection without needing to log in
 
 ### Shared Collection Features
-- 👁️ Read-only view (no editing capabilities)
-- 📋 Collection metadata (shared by, item count)
-- 🎨 Same responsive design as the main app
-- 🔒 Privacy-focused (only explicitly shared collections are accessible)
+
+-   👁️ Read-only view (no editing capabilities)
+-   📋 Collection metadata (shared by, item count)
+-   🎨 Same responsive design as the main app
+-   🔒 Privacy-focused (only explicitly shared collections are accessible)
 
 Example share URL: `https://michaldakowicz.github.io/vinyl-cd-tracker/?share=abc123def456`
