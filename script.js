@@ -1233,14 +1233,9 @@ if (importButton) {
                         }))
                         .filter(Boolean);
 
-                    const existingIds = new Set(items.map((i) => i.id));
-                    const newItemsToPush = [];
-                    validatedImportedItems.forEach((importedItem) => {
-                        if (!existingIds.has(importedItem.id)) {
-                            newItemsToPush.push(importedItem);
-                        }
-                    });
-                    items.push(...newItemsToPush);
+                    // Replace the entire items array to preserve the imported order
+                    items.length = 0;
+                    items.push(...validatedImportedItems);
                     await refreshItems();
                     notifyUser("Items imported successfully!", "success");
                 } catch (error) {
